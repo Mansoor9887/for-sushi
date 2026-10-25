@@ -1,1 +1,1 @@
-# for-sushi
+# For Sushi 🤍
