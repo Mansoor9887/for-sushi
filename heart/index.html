@@ -39,7 +39,7 @@ body{font-family:var(--body);font-weight:300;padding-block:18px 28px;padding-lef
 .hint b{color:var(--paper);font-weight:400}
 .btn{align-self:center;font:inherit;font-size:15px;letter-spacing:.04em;padding:13px 26px;border-radius:999px;border:1px solid var(--paper);background:var(--paper);color:var(--ink);cursor:pointer}
 .endrow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.btn.ghost{background:transparent;color:var(--paper);border-color:var(--blush);text-decoration:none}.btn[hidden]{display:none}
-.letter{display:flex;flex-direction:column;gap:6px;text-align:center;padding-block:10px 4px;font-family:var(--display);font-style:italic;font-size:clamp(19px,5.2vw,23px);line-height:1.45}
+.letter{display:flex;flex-direction:column;gap:16px;text-align:center;text-wrap:pretty;padding-block:10px 4px;font-family:var(--display);font-style:italic;font-size:clamp(19px,5.2vw,23px);line-height:1.45}
 .letter p{margin:0;opacity:0;transform:translateY(6px);transition:opacity 1.1s,transform 1.1s}.letter p.on{opacity:1;transform:none}.letter .gap{height:10px}.letter .sign{font-family:var(--body);font-style:normal;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--silver);margin-top:8px}.letter .hl{color:var(--blush)}
 .note{font-size:12px;color:var(--silver);border-top:1px solid var(--line);padding-top:12px;line-height:1.6}
 text{font-family:var(--body)}
@@ -371,7 +371,7 @@ function chWanted(){setHint('Everyone said I was the trouble. Turns out you’re
       await sleep(2800);v.getAnimations().forEach(a=>a.cancel());v.style.opacity=1;fade(v,0,600);fade(kmT,1,600);fade(subT,1,600);fade(th,0,600);fade(bars,0,600);fade(H,1,700);await sleep(700);th.style.display='none';res()}
   })}
 /* finale */
-const LETTER=["Of all the sweet things in this world,", "<span class=\"hl\">there is nothing sweeter than your heart.</span>", "", "Not the chai you dip your biscuit in,", "not the croissant you wanted to eat with me,", "not even the cake you ate melted.", "", "Your heart is the softest place I know.", "It held on to me from 2,050 km away,", "on the days I couldn’t hold your hand.", "", "It said qubool hai, and made mine whole.", "Half of my heart was always yours,", "and today the two halves are finally one.", "", "So keep it safe, keep it close,", "and whatever happens… <span class=\"hl\">don’t let go.</span>", "", "Because you are my passion,", "my peace, my sukoon, my heart. 🤍", "", "<span class=\"hl\">Love you, love you, love you more ♥️</span>"];
+const LETTER=["<span class=\"hl\">There is nothing sweeter than your love.</span> Not chai, not croissants, not even the cake you ate melted 😛 My only craving is your heart, and no matter how much of it you give me, I still want more 🤍", "Your heart is the softest place I have ever known. It found mine from miles away and made itself at home, quietly and completely, the way you do everything.", "Half of my heart was always yours. I just didn’t know it until you said Salam. Since then, every beat has had your name in it 🫠", "On the 23rd you put your hand in mine, and I kept fitting your fingers into place. That is what you are to me, the piece that makes my heart fit 🫶", "On the long days, when you feel far, I hold on to the little things. Your voice, your “good morning love”, and that heart you made with one arm and one hand. The most beautiful heart I have ever seen 🩷", "Keep my heart, jaan. It was never this safe until it was in your hands, and it will never belong anywhere else.", "So whatever comes, whatever distance, whatever days, <span class=\"hl\">don’t let go.</span> Because you are my passion, my peace, my sukoon, my whole heart ♥️", "<span class=\"hl\">Love you, love you, love you more</span> 💋"];
 async function finale(){prog(-1,6);setHint('');H.classList.remove('beating');
   fade(kmT,0,500);fade(subT,0,500);fade($('cityL'),0,500);fade($('cityR'),0,500);
   await animD(0,600);
@@ -382,7 +382,7 @@ async function finale(){prog(-1,6);setHint('');H.classList.remove('beating');
   fade($('full'),1,2000);fade($('gL'),0,2200);fade($('gR'),0,2200);fade($('aura'),.5,2200);document.querySelectorAll('.edge').forEach(e=>{e.style.transition='opacity 1.5s';e.style.opacity=1});H.classList.add('beating');await sleep(1600);fade($('fin'),1,10);fade($('f1'),1,1000);await sleep(1200);fade($('f2'),1,1000);await sleep(1600);
   fade($('f3'),1,1000);await sleep(900);fade($('f4'),1,1000);await sleep(1200);
   const lt=$('letter');lt.innerHTML=LETTER.map(l=>l?`<p>${l}</p>`:'<div class="gap"></div>').join('')+'<p class="sign">Yours, Mohammad</p>';lt.hidden=false;
-  for(const p of lt.querySelectorAll('p')){await sleep(650);p.classList.add('on')}
+  for(const p of lt.querySelectorAll('p')){await sleep(1400);p.classList.add('on')}
   await sleep(800);$('again').hidden=false;}
 
 async function run(){
