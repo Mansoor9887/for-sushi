@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d0b0b">
+<meta name="robots" content="noindex">
+<title>Two Halves: Together</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@300;400;500&display=swap">
+<style>
+/* One phone-sized board in the middle, controls below. Same dark, blush and cream world as Two Halves. */
+:root{--ink:#0d0b0b;--panel:#151212;--line:#2b2624;--paper:#f1e9e0;--silver:#a59c95;--blush:#efb8b1;--rose:#d9837c;--cream:#f3e3c3;
+ --display:"Cormorant Garamond","Iowan Old Style",Georgia,serif;--body:"Jost","Avenir Next","Segoe UI",system-ui,sans-serif;color-scheme:dark}
+html,body{background:var(--ink);color:var(--paper);height:100%}
+body{font-family:var(--body);font-weight:300;padding-block:14px 24px;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:460px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+h1{font-family:var(--display);font-style:italic;font-weight:500;font-size:clamp(34px,10vw,48px);margin:0;line-height:1;text-align:center}
+.sub{color:var(--silver);text-align:center;font-size:14px;margin:0;line-height:1.5}
+.btn{font:inherit;font-size:16px;padding:14px 18px;border-radius:999px;border:1px solid var(--paper);background:var(--paper);color:var(--ink);cursor:pointer;width:100%}
+.btn.ghost{background:transparent;color:var(--paper);border-color:var(--line)}
+.btn.her{background:var(--blush);border-color:var(--blush)}.btn.him{background:var(--cream);border-color:var(--cream)}
+.btn:focus-visible,.pad button:focus-visible{outline:2px solid var(--blush);outline-offset:3px}
+.row{display:flex;gap:10px}.row>*{flex:1}
+input.code{font:inherit;font-size:28px;letter-spacing:.4em;text-align:center;text-transform:uppercase;background:var(--panel);color:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px;width:100%}
+.codebig{font-family:var(--display);font-size:56px;letter-spacing:.25em;text-align:center;margin:4px 0;color:var(--blush)}
+.screen[hidden]{display:none!important}.screen{display:flex;flex-direction:column;gap:12px}
+.hud{display:flex;justify-content:space-between;align-items:center;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--silver)}
+.dots{display:flex;gap:6px}.dots i{width:9px;height:9px;border-radius:50%;background:var(--line)}.dots i.on{background:var(--blush)}
+.boardwrap{position:relative;width:100%;aspect-ratio:9/13;max-width:100%;background:#0a0808;border-radius:12px;overflow:hidden;touch-action:none}
+canvas{width:100%;height:100%;display:block}
+.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;background:rgba(10,8,8,.82);padding:0 22px;opacity:0;pointer-events:none;transition:opacity .4s}
+.overlay.show{opacity:1;pointer-events:auto}
+.overlay .n{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--silver)}
+.overlay .t{white-space:pre-line;font-family:var(--display);font-style:italic;font-size:clamp(30px,9vw,42px);line-height:1.05}
+.overlay .s{font-size:15px;color:var(--silver);line-height:1.5;max-width:30ch}
+.tip{min-height:2.8em;text-align:center;font-size:14px;line-height:1.45;color:var(--silver)}.tip b{color:var(--paper);font-weight:400}
+.pads{display:flex;gap:14px;justify-content:center}
+.pad{display:grid;grid-template-columns:repeat(3,58px);grid-template-rows:repeat(3,58px);gap:6px}
+.pad.small{grid-template-columns:repeat(3,46px);grid-template-rows:repeat(3,46px)}
+.pad button{font:inherit;font-size:20px;border-radius:14px;border:1px solid var(--line);background:var(--panel);color:var(--paper);cursor:pointer;touch-action:none}
+.pad button:active,.pad button.down{background:#241e1d}
+.pad .lbl{display:grid;place-items:center;font-size:10px;letter-spacing:.2em;color:var(--silver)}
+.pad.her button{border-color:#5a3f3c}.pad.him button{border-color:#5a5141}
+.sync{display:flex;gap:14px;justify-content:center}
+.sync button{width:132px;height:132px;border-radius:50%;font:inherit;font-size:44px;border:2px solid var(--blush);background:#1d1615;color:var(--blush);cursor:pointer;touch-action:none}
+.sync button.him{border-color:var(--cream);color:var(--cream)}
+.status{font-size:12px;color:var(--silver);text-align:center}
+.status b{color:var(--blush);font-weight:400}
+@media (prefers-reduced-motion:reduce){.overlay{transition:none}}
+</style>
+<style>*{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <!-- HOME -->
+  <section class="screen" id="home">
+    <h1>Two Halves</h1>
+    <p class="sub">Together. A co-op game you can only win as a team. Get on a call, you'll need to talk.</p>
+    <button class="btn" id="bCreate">Create a room</button>
+    <button class="btn ghost" id="bJoin">Join a room</button>
+    <button class="btn ghost" id="bLocal">Play on one phone</button>
+  </section>
+
+  <!-- CREATE -->
+  <section class="screen" id="create" hidden>
+    <p class="sub">Who are you playing as?</p>
+    <div class="row"><button class="btn her" id="asHer">Her</button><button class="btn him" id="asHim">Him</button></div>
+    <div id="codebox" hidden>
+      <p class="sub">Send this code to your other half</p>
+      <div class="codebig" id="codeShow">····</div>
+      <p class="status" id="cStatus">Waiting for them to join…</p>
+    </div>
+    <button class="btn ghost" data-back>Back</button>
+  </section>
+
+  <!-- JOIN -->
+  <section class="screen" id="join" hidden>
+    <p class="sub">Type the code from your other half</p>
+    <input class="code" id="codeIn" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Room code">
+    <button class="btn" id="bGo">Join</button>
+    <p class="status" id="jStatus"></p>
+    <button class="btn ghost" data-back>Back</button>
+  </section>
+
+  <!-- GAME -->
+  <section class="screen" id="game" hidden>
+    <div class="hud"><span id="who">You are</span><div class="dots" id="dots"><i></i><i></i><i></i><i></i><i></i></div><span id="net">●</span></div>
+    <div class="boardwrap" id="bw">
+      <canvas id="cv" width="540" height="780"></canvas>
+      <div class="overlay" id="ov"><span class="n" id="ovN"></span><span class="t" id="ovT"></span><span class="s" id="ovS"></span><button class="btn" id="ovBtn" hidden style="max-width:240px;margin-top:8px"></button></div>
+    </div>
+    <p class="tip" id="tip"></p>
+    <div class="pads" id="pads"></div>
+    <div class="sync" id="sync" hidden></div>
+  </section>
+</div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const show=id=>{document.querySelectorAll('.screen').forEach(s=>s.hidden=s.id!==id)};
+document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{try{peer&&peer.destroy()}catch(_){}show('home')});
+
+/* ---------------- sound ---------------- */
+let ac=null;function tone(f,d=.12,type='sine',v=.08){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+d+.02)}catch(_){}}
+const sfx={step:()=>tone(520,.05,'triangle',.03),bump:()=>tone(140,.09,'square',.04),door:()=>tone(660,.15),win:()=>{[523,659,784,1046].forEach((f,i)=>setTimeout(()=>tone(f,.25),i*110))},hurt:()=>tone(110,.3,'sawtooth',.06),sync:()=>tone(880,.18),miss:()=>tone(200,.2,'square',.05)};
+const buzz=ms=>{try{navigator.vibrate&&navigator.vibrate(ms)}catch(_){}};
+
+/* ---------------- levels ---------------- */
+const LV=[
+ {name:'Switches',sub:'Stand on a switch to open the other one’s door. Take turns.',map:[
+ '#########',
+ '###A#B###',
+ '###C#P###',
+ '###p#c###',
+ '#...#...#',
+ '#.C.#.P.#',
+ '#...#...#',
+ '#.......#'.replace(/./g,(c,i)=>i===4?'#':c),
+ '#.a.#.b.#',
+ '#...#...#',
+ '#...#...#',
+ '#...#...#',
+ '#########']},
+ {name:'Blind guide',sub:'Only one of you can see the maze. Talk the other one through it. Then swap.',mazes:[[
+ '#########',
+ '#B..#...#',
+ '###.#.#.#',
+ '#...#.#.#',
+ '#.###.#.#',
+ '#.....#.#',
+ '#####.#.#',
+ '#.....#.#',
+ '#.#####.#',
+ '#.#.....#',
+ '#.#.###.#',
+ '#...#..b#',
+ '#########'],[
+ '#########',
+ '#...#..A#',
+ '#.#.#.###',
+ '#.#...#.#',
+ '#.#####.#',
+ '#.......#',
+ '###.###.#',
+ '#...#...#',
+ '#.###.#.#',
+ '#...#.#.#',
+ '###.#.#.#',
+ '#a..#...#',
+ '#########']]},
+ {name:'The rope',sub:'You are tied together. Stay within two steps of each other, and watch the spikes.',map:[
+ '#########',
+ '#..A.B..#',
+ '#.#####.#',
+ '#.^...^.#',
+ '#.#.#.#.#',
+ '#...^...#',
+ '###.#.###',
+ '#.^...^.#',
+ '#.#.#.#.#',
+ '#...^...#',
+ '#.#####.#',
+ '#..a.b..#',
+ '#########']},
+ {name:'Two keys',sub:'Tap your heart at exactly the same moment. Five times. Count it out together.'},
+ {name:'Meet in the middle',sub:'Two paths, one heart. Open the way for each other and meet at the bottom.',map:[
+ '#########',
+ '#a.#.#.b#',
+ '#.##.##.#',
+ '#..#.#..#',
+ '##.#.#P##',
+ '#..#.#..#',
+ '#p##.##.#',
+ '#..#.#..#',
+ '##C#.#.##',
+ '#..#.#..#',
+ '#.##.##c#',
+ '#..A#B..#',
+ '#########']}
+];
+const W=9,H=13;
+
+/* ---------------- state ---------------- */
+let mode='local';   // 'local' | 'net'
+let me='her';       // my role in net mode
+let isHost=true;
+let conn=null,peer=null;
+let finT0=0,tapMe=0,tapThem=0;
+let lvl=0,map=null,pos={her:{x:0,y:0},him:{x:0,y:0}},start={},phase=0,levelT0=0,bumpFlash=null,syncN=0,playing=false,flash=0;
+const other=r=>r==='her'?'him':'her';
+const COL={her:'#efb8b1',him:'#f3e3c3'};
+
+function tile(x,y){if(x<0||y<0||x>=W||y>=H)return '#';return map[y][x]}
+function onSwitch(ch){return ['her','him'].some(r=>tile(pos[r].x,pos[r].y)===ch)}
+function doorOpen(ch){return onSwitch(ch==='p'?'P':'C')}
+function spikesOn(){return ((performance.now()-levelT0)%2000)<1000}
+function walker(){return phase===0?'him':'her'}
+
+function loadLevel(i){
+  lvl=i;phase=0;levelT0=performance.now();syncN=0;finT0=0;tapMe=tapThem=0;bumpFlash=null;
+  const L=LV[i];
+  if(L.mazes)map=L.mazes[0];else if(L.map)map=L.map;else map=null;
+  findStarts();
+  [...$('dots').children].forEach((d,j)=>d.classList.toggle('on',j<i));
+  buildControls();
+  intro(i);
+}
+function findStarts(){if(!map)return;for(let y=0;y<H;y++)for(let x=0;x<W;x++){const c=map[y][x];if(c==='a')start.her={x,y};if(c==='b')start.him={x,y}}
+  if(LV[lvl].mazes){ // single walker per maze
+    if(phase===0){start.him=start.him||{x:7,y:11}} else {start.her=start.her||{x:1,y:11}}}
+  pos.her={...(start.her||{x:-5,y:-5})};pos.him={...(start.him||{x:-5,y:-5})};}
+
+/* ---------------- overlay ---------------- */
+let ovTimer=0;
+function overlay(n,t,s,ms,btn,fn){$('ovN').textContent=n;$('ovT').textContent=t;$('ovS').textContent=s;$('ov').classList.add('show');const b=$('ovBtn');
+  if(btn){b.hidden=false;b.textContent=btn;b.onclick=fn}else b.hidden=true;clearTimeout(ovTimer);if(ms)ovTimer=setTimeout(()=>$('ov').classList.remove('show'),ms)}
+function intro(i){playing=false;overlay('Level '+(i+1)+' of 5',LV[i].name,LV[i].sub,2600);setTimeout(()=>{playing=true;levelT0=performance.now();tipText()},2600)}
+
+function tipText(){const L=LV[lvl];let t='';
+  if(lvl===0)t='<b>Stand on a switch</b> to open your other half’s door of the same colour.';
+  if(lvl===1){const w=walker();if(mode==='local')t=`<b>${w==='him'?'Him':'Her'}</b> walks. The other one guides.`;else t=me===w?'<b>You can’t see the walls.</b> Listen to your guide.':'<b>You see the maze.</b> Guide them with your voice.'}
+  if(lvl===2)t='<b>Stay close.</b> Spikes glow every other second. Step on a glowing spike and you both start over.';
+  if(lvl===3)t=`<b>Tap together.</b> ${syncN} / 5`;
+  if(lvl===4)t='<b>Open each other’s doors</b> and meet at the bottom.';
+  $('tip').innerHTML=t}
+
+/* ---------------- movement ---------------- */
+function canMove(r,dx,dy){
+  const p=pos[r],nx=p.x+dx,ny=p.y+dy,c=tile(nx,ny);
+  if(c==='#')return 'wall';
+  if((c==='p'||c==='c')&&!doorOpen(c))return 'door';
+  if(lvl===2){const o=pos[other(r)];if(Math.max(Math.abs(nx-o.x),Math.abs(ny-o.y))>2)return 'rope'}
+  if(LV[lvl].mazes&&r!==walker())return 'none';
+  if(lvl===3)return 'none';
+  return '';
+}
+function move(r,dx,dy){
+  if(!playing||!map)return;
+  if(mode==='net'&&r!==me)return;
+  const why=canMove(r,dx,dy);
+  if(why){if(why==='wall'||why==='door'){sfx.bump();buzz(20);bumpFlash={x:pos[r].x+dx,y:pos[r].y+dy,t:performance.now()}}
+    if(why==='rope'){sfx.bump();buzz(30);flash=performance.now();$('tip').innerHTML='<b>The rope is tight.</b> Wait for your other half.'}
+    return}
+  const before=doorStates();
+  pos[r].x+=dx;pos[r].y+=dy;sfx.step();
+  if(doorStates()!==before)sfx.door();
+  send({t:'pos',r,x:pos[r].x,y:pos[r].y,lvl,phase});
+  checkHazard(r);check();
+}
+function doorStates(){return String(doorOpen('p'))+doorOpen('c')}
+function checkHazard(r){if(lvl!==2)return;if(tile(pos[r].x,pos[r].y)==='^'&&spikesOn()){resetRope(true)}}
+function resetRope(sendIt){sfx.hurt();buzz(120);pos.her={...start.her};pos.him={...start.him};flash=performance.now();$('tip').innerHTML='<b>Ouch, spikes.</b> Back to the start, together.';if(sendIt)send({t:'reset',lvl})}
+
+/* ---------------- win checks (host decides) ---------------- */
+function at(r,ch){return tile(pos[r].x,pos[r].y)===ch}
+function check(){
+  if(!isHost||!playing)return;
+  if(lvl===0||lvl===2||lvl===4){if(at('her','A')&&at('him','B'))advance()}
+  if(lvl===1){const w=walker(),g=w==='him'?'B':'A';if(at(w,g)){if(phase===0)setPhase(1);else advance()}}
+}
+function setPhase(p){phase=p;map=LV[1].mazes[p];start={};findStarts();sfx.win();send({t:'phase',p});
+  playing=false;overlay('Halfway','Now swap','The other one walks. The other one guides.',2200);setTimeout(()=>{playing=true;tipText()},2200)}
+function advance(){playing=false;sfx.win();buzz(60);const n=lvl+1;send({t:'go',lvl:n});setTimeout(()=>{if(n>=LV.length)finale();else loadLevel(n)},900)}
+
+/* ---------------- level 4: two keys ---------------- */
+
+function tap(r){if(!playing||lvl!==3)return;const now=performance.now();tone(r==='her'?660:520,.1);
+  if(mode==='local'){if(r==='her')tapMe=now;else tapThem=now;judge(tapMe,tapThem,260)}
+  else{tapMe=now;send({t:'tap'});if(isHost)judge(tapMe,tapThem,450)}}
+function judge(a,b,win){if(!a||!b)return;
+  if(Math.abs(a-b)<win){syncN++;tapMe=tapThem=0;sfx.sync();buzz(40);flash=performance.now();send({t:'sync',n:syncN});tipText();if(syncN>=5)advance()}
+  else{if(a<b)tapMe=0;else tapThem=0;sfx.miss();buzz(80);const m=`<b>Out of sync.</b> ${syncN} / 5. Count “1, 2, 3” and tap on 3.`;$('tip').innerHTML=m;send({t:'miss'})}}
+
+/* ---------------- finale ---------------- */
+function finale(){playing=false;[...$('dots').children].forEach(d=>d.classList.add('on'));map=null;finT0=performance.now();
+  $('pads').innerHTML='';$('sync').hidden=true;$('tip').innerHTML='';sfx.win();
+  setTimeout(()=>overlay('You did it, together','Two halves.\nOne heart.','No level was ever possible alone. Neither is this 🤍',0,'Play again',()=>{$('ov').classList.remove('show');if(mode==='local'||isHost){send({t:'go',lvl:0});loadLevel(0)}else send({t:'again'})}),2600)}
+
+
+/* ---------------- networking ---------------- */
+function send(o){if(mode==='net'&&conn&&conn.open)try{conn.send(o)}catch(_){}}
+function onMsg(o){
+  if(o.t==='hello'){me=other(o.hostRole);startNet();return}
+  if(o.t==='pos'){if(o.lvl!==lvl)return;const before=doorStates();pos[o.r]={x:o.x,y:o.y};if(doorStates()!==before)sfx.door();check();return}
+  if(o.t==='reset'){if(o.lvl===lvl)resetRope(false);return}
+  if(o.t==='phase'){phase=o.p;map=LV[1].mazes[o.p];start={};findStarts();sfx.win();playing=false;overlay('Halfway','Now swap','The other one walks. The other one guides.',2200);setTimeout(()=>{playing=true;tipText()},2200);return}
+  if(o.t==='go'){$('ov').classList.remove('show');if(o.lvl>=LV.length)finale();else loadLevel(o.lvl);return}
+  if(o.t==='tap'){tapThem=performance.now();if(isHost)judge(tapMe,tapThem,450);return}
+  if(o.t==='miss'){sfx.miss();$('tip').innerHTML=`<b>Out of sync.</b> ${syncN} / 5. Count “1, 2, 3” and tap on 3.`;return}
+  if(o.t==='again'){if(isHost){$('ov').classList.remove('show');send({t:'go',lvl:0});loadLevel(0)}return}
+  if(o.t==='sync'){syncN=o.n;sfx.sync();flash=performance.now();tipText();return}
+}
+const CODE_CH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+function makeCode(){let s='';for(let i=0;i<4;i++)s+=CODE_CH[Math.floor(Math.random()*CODE_CH.length)];return s}
+const PREFIX='twohalves-together-';
+function netStatus(ok){$('net').textContent=ok?'● connected':'● offline';$('net').style.color=ok?'#9fd3a8':'#d9837c'}
+function wire(c){conn=c;c.on('data',onMsg);c.on('close',()=>{netStatus(false);overlay('Connection lost','Hold on','Your other half disconnected. Go back and join again with the same code.',0,'Back to start',()=>location.reload())});c.on('error',()=>netStatus(false))}
+
+const BC=location.search.includes('bc');
+function bcConn(code){const ch=new BroadcastChannel('th-'+code),h={};const c={open:true,send:o=>ch.postMessage(o),on:(n,f)=>{h[n]=f;if(n==='open')setTimeout(f,30)}};ch.onmessage=e=>h.data&&h.data(e.data);return c}
+function hostAs(role){
+  if(BC){me=role;isHost=true;mode='net';const code='TEST';$('codebox').hidden=false;$('codeShow').textContent=code;const c=bcConn(code);wire(c);c.on('data',o=>{if(o.t==='join'){c.send({t:'hello',hostRole:me});startNet()}else onMsg(o)});return}
+  if(!window.Peer){$('cStatus').textContent='Online play could not load here. Try the one-phone mode.';return}
+  me=role;isHost=true;mode='net';const code=makeCode();$('codebox').hidden=false;$('codeShow').textContent=code;
+  try{peer&&peer.destroy()}catch(_){}
+  peer=new Peer(PREFIX+code);
+  peer.on('error',e=>{$('cStatus').textContent=e.type==='unavailable-id'?'That code is taken, go back and try again.':'Network problem: '+e.type+'. Try again, or use one-phone mode.'});
+  peer.on('connection',c=>{wire(c);c.on('open',()=>{c.send({t:'hello',hostRole:me});startNet()})});
+}
+function joinRoom(){
+  if(BC){isHost=false;mode='net';const c=bcConn('TEST');wire(c);c.send({t:'join'});return}
+  const code=$('codeIn').value.trim().toUpperCase();if(code.length!==4){$('jStatus').textContent='The code has 4 letters.';return}
+  if(!window.Peer){$('jStatus').textContent='Online play could not load here. Try the one-phone mode.';return}
+  isHost=false;mode='net';$('jStatus').textContent='Connecting…';
+  try{peer&&peer.destroy()}catch(_){}
+  peer=new Peer();
+  peer.on('open',()=>{const c=peer.connect(PREFIX+code,{reliable:true});wire(c);
+    const to=setTimeout(()=>{if(!c.open)$('jStatus').textContent='Can’t reach that room. Check the code, and that they’re still on the code screen.'},9000);
+    c.on('open',()=>{clearTimeout(to);$('jStatus').textContent='Connected!'})});
+  peer.on('error',e=>{$('jStatus').textContent=e.type==='peer-unavailable'?'No room with that code. Check it with your other half.':'Network problem: '+e.type+'. Try again, or use one-phone mode.'});
+}
+function startNet(){netStatus(true);show('game');$('who').innerHTML='You are <b style="color:'+COL[me]+';font-weight:400">'+(me==='her'?'Her':'Him')+'</b>';loadLevel(0)}
+
+/* ---------------- controls ---------------- */
+function padHTML(role,small){const r=role?` data-r="${role}"`:'';return `<div class="pad ${role||''} ${small?'small':''}"><span></span><button${r} data-d="0,-1" aria-label="Up">▲</button><span></span><button${r} data-d="-1,0" aria-label="Left">◀</button><span class="lbl">${role?role.toUpperCase():''}</span><button${r} data-d="1,0" aria-label="Right">▶</button><span></span><button${r} data-d="0,1" aria-label="Down">▼</button><span></span></div>`}
+function buildControls(){
+  const pads=$('pads'),sy=$('sync');
+  if(lvl===3){pads.innerHTML='';sy.hidden=false;
+    sy.innerHTML=mode==='local'?'<button data-tap="her" aria-label="Her heart">♥</button><button class="him" data-tap="him" aria-label="His heart">♥</button>':`<button class="${me}" data-tap="${me}" aria-label="Your heart">♥</button>`;
+    sy.querySelectorAll('[data-tap]').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();tap(b.dataset.tap)}));return}
+  sy.hidden=true;
+  pads.innerHTML=mode==='local'?padHTML('her',true)+padHTML('him',true):padHTML('',false);
+  pads.querySelectorAll('button[data-d]').forEach(b=>{let rep=0;const [dx,dy]=b.dataset.d.split(',').map(Number);const r=b.dataset.r||me;
+    const go=()=>move(r,dx,dy);
+    b.addEventListener('pointerdown',e=>{e.preventDefault();b.classList.add('down');go();clearInterval(rep);rep=setInterval(go,190)});
+    ['pointerup','pointerleave','pointercancel'].forEach(n=>b.addEventListener(n,()=>{b.classList.remove('down');clearInterval(rep)}))});
+}
+const KEYS={ArrowUp:['her',0,-1],ArrowDown:['her',0,1],ArrowLeft:['her',-1,0],ArrowRight:['her',1,0],w:['him',0,-1],s:['him',0,1],a:['him',-1,0],d:['him',1,0]};
+document.addEventListener('keydown',e=>{if($('game').hidden)return;
+  if(lvl===3&&(e.key===' '||e.key==='Enter'||e.key==='Shift')){e.preventDefault();if(e.repeat)return;tap(mode==='local'?(e.key==='Shift'?'him':'her'):me);return}
+  const k=KEYS[e.key]||KEYS[e.key.toLowerCase&&e.key.toLowerCase()];if(!k)return;e.preventDefault();
+  const r=mode==='local'?k[0]:me;move(r,k[1],k[2])});
+/* swipe on the board (your own character) */
+(()=>{let sx=0,sy=0,act=false;const bw=$('bw');
+  bw.addEventListener('pointerdown',e=>{act=true;sx=e.clientX;sy=e.clientY});
+  bw.addEventListener('pointerup',e=>{if(!act)return;act=false;const dx=e.clientX-sx,dy=e.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))<24)return;
+    const r=mode==='local'?(e.clientX<bw.getBoundingClientRect().left+bw.clientWidth/2?'her':'him'):me;
+    if(Math.abs(dx)>Math.abs(dy))move(r,Math.sign(dx),0);else move(r,0,Math.sign(dy))})})();
+
+/* ---------------- drawing ---------------- */
+const cv=$('cv'),cx=cv.getContext('2d'),T=60;
+function heartPath(x,y,s){cx.beginPath();cx.moveTo(x,y+s*.35);cx.bezierCurveTo(x,y,x-s*.5,y,x-s*.5,y+s*.3);cx.bezierCurveTo(x-s*.5,y+s*.6,x,y+s*.75,x,y+s*.95);cx.bezierCurveTo(x,y+s*.75,x+s*.5,y+s*.6,x+s*.5,y+s*.3);cx.bezierCurveTo(x+s*.5,y,x,y,x,y+s*.35);cx.closePath()}
+function blob(r,px,py,t){const c=COL[r];const bob=Math.sin(t/260+(r==='her'?0:1.6))*2;
+  cx.save();cx.translate(px,py+bob);cx.fillStyle=c;cx.shadowColor=c;cx.shadowBlur=14;
+  cx.beginPath();cx.roundRect(-20,-18,40,38,[18,18,14,14]);cx.fill();cx.shadowBlur=0;
+  cx.fillStyle='#1a1414';cx.beginPath();cx.arc(-7,-3,3.2,0,7);cx.arc(7,-3,3.2,0,7);cx.fill();
+  cx.fillStyle=r==='her'?'#d9837c':'#c9a96e';heartPath(0,4,12);cx.fill();cx.restore()}
+function draw(t){
+  cx.fillStyle='#0a0808';cx.fillRect(0,0,cv.width,cv.height);
+  if(flash&&t-flash<300){cx.fillStyle=`rgba(239,184,177,${.18*(1-(t-flash)/300)})`;cx.fillRect(0,0,cv.width,cv.height)}
+  if(lvl===3&&map===null&&finT0===0){drawSync(t);return}
+  if(!map){drawFinale(t);return}
+  const blindMe=mode==='net'&&LV[lvl].mazes&&me===walker();
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const c=map[y][x],X=x*T,Y=y*T;
+    if(c==='#'){if(blindMe){if(bumpFlash&&bumpFlash.x===x&&bumpFlash.y===y&&t-bumpFlash.t<700){cx.fillStyle=`rgba(217,131,124,${.6*(1-(t-bumpFlash.t)/700)})`;cx.fillRect(X+2,Y+2,T-4,T-4)}continue}
+      cx.fillStyle='#1d1817';cx.fillRect(X+1,Y+1,T-2,T-2);continue}
+    cx.fillStyle=blindMe?'#0a0808':'#121010';cx.fillRect(X+1,Y+1,T-2,T-2);
+    if(blindMe)continue;
+    if(c==='A'||c==='B'){cx.strokeStyle=c==='A'?COL.her:COL.him;cx.lineWidth=2.5;heartPath(X+T/2,Y+14,30);cx.stroke()}
+    if(c==='P'||c==='C'){const on=onSwitch(c);cx.fillStyle=c==='P'?COL.her:COL.him;cx.globalAlpha=on?1:.45;cx.beginPath();cx.arc(X+T/2,Y+T/2,13,0,7);cx.fill();cx.globalAlpha=1;cx.strokeStyle='#0a0808';cx.lineWidth=2;cx.beginPath();cx.arc(X+T/2,Y+T/2,6,0,7);cx.stroke()}
+    if(c==='p'||c==='c'){const open=doorOpen(c);cx.strokeStyle=c==='p'?COL.her:COL.him;cx.fillStyle=c==='p'?COL.her:COL.him;
+      if(open){cx.globalAlpha=.35;cx.setLineDash([4,5]);cx.lineWidth=2;cx.strokeRect(X+6,Y+6,T-12,T-12);cx.setLineDash([]);cx.globalAlpha=1}
+      else{for(let i=0;i<4;i++)cx.fillRect(X+8+i*12,Y+6,6,T-12)}}
+    if(c==='^'){const on=spikesOn();cx.fillStyle=on?'#ff8f86':'#4a3836';if(on){cx.shadowColor='#ff8f86';cx.shadowBlur=12}
+      for(let i=0;i<3;i++){cx.beginPath();cx.moveTo(X+10+i*14,Y+T-12);cx.lineTo(X+17+i*14,Y+14);cx.lineTo(X+24+i*14,Y+T-12);cx.fill()}cx.shadowBlur=0}
+  }
+  if(!blindMe&&bumpFlash&&t-bumpFlash.t<300){cx.strokeStyle='rgba(217,131,124,.8)';cx.lineWidth=3;cx.strokeRect(bumpFlash.x*T+3,bumpFlash.y*T+3,T-6,T-6)}
+  if(lvl===2){const a=pos.her,b=pos.him;const d=Math.max(Math.abs(a.x-b.x),Math.abs(a.y-b.y));cx.strokeStyle=d>=2?'#d9837c':'#a59c95';cx.lineWidth=2.5;cx.beginPath();cx.moveTo(a.x*T+T/2,a.y*T+T/2);
+    const mx=(a.x+b.x)/2*T+T/2,my=(a.y+b.y)/2*T+T/2+(d>=2?0:14);cx.quadraticCurveTo(mx,my,b.x*T+T/2,b.y*T+T/2);cx.stroke()}
+  ['her','him'].forEach(r=>{const p=pos[r];if(p.x<0)return;if(LV[lvl].mazes&&r!==walker())return;blob(r,p.x*T+T/2,p.y*T+T/2,t)});
+}
+function drawSync(t){const k=syncN/5;cx.fillStyle='#121010';cx.fillRect(0,0,cv.width,cv.height);
+  const s=200+40*k+(flash&&t-flash<300?30*(1-(t-flash)/300):0);
+  cx.save();cx.translate(-s*0.42*(1-k),0);cx.fillStyle=COL.her;cx.globalAlpha=.9;heartHalf(270,190,s,true);cx.restore();
+  cx.save();cx.translate(s*0.42*(1-k)+0,0);cx.fillStyle=COL.him;cx.globalAlpha=.9;heartHalf(270,190,s,false);cx.restore();cx.globalAlpha=1;
+  cx.fillStyle='#a59c95';cx.font='500 15px Jost, sans-serif';cx.textAlign='center';cx.fillText('LOCKED '+syncN+' / 5',270,640);
+  cx.font='italic 500 34px "Cormorant Garamond", serif';cx.fillStyle='#f1e9e0';cx.fillText(syncN>=5?'Unlocked':'Tap together',270,600)}
+function heartHalf(x,y,s,left){cx.save();cx.beginPath();if(left)cx.rect(x-s,y-s,s,s*2.2);else cx.rect(x,y-s,s,s*2.2);cx.clip();heartPath(x,y,s*1.6);cx.fill();cx.restore()}
+function drawFinale(t){const e=Math.min(1,(t-finT0)/1600),ease=1-Math.pow(1-e,3);
+  const s=240+Math.sin(t/300)*6*e;cx.fillStyle=COL.her;heartHalf(270-90*(1-ease),220,s,true);cx.fillStyle=COL.him;heartHalf(270+90*(1-ease),220,s,false);
+  for(let i=0;i<18;i++){const a=i/18*Math.PI*2+t/2000,R=230+30*Math.sin(t/500+i);cx.fillStyle=i%2?COL.her:COL.him;cx.globalAlpha=.5*e;cx.beginPath();cx.arc(270+Math.cos(a)*R,420+Math.sin(a)*R*.9,3,0,7);cx.fill()}cx.globalAlpha=1}
+function loop(t){draw(t);
+  if(playing&&lvl===2){['her','him'].forEach(r=>{if((mode==='local'||r===me)&&tile(pos[r].x,pos[r].y)==='^'&&spikesOn())resetRope(true)})}
+  requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+if(!CanvasRenderingContext2D.prototype.roundRect)CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h){this.rect(x,y,w,h)};
+
+/* ---------------- start ---------------- */
+$('bCreate').onclick=()=>{$('codebox').hidden=true;show('create')};
+$('asHer').onclick=()=>hostAs('her');$('asHim').onclick=()=>hostAs('him');
+$('bJoin').onclick=()=>{$('jStatus').textContent='';show('join');setTimeout(()=>$('codeIn').focus(),50)};
+$('bGo').onclick=joinRoom;$('codeIn').addEventListener('keydown',e=>{if(e.key==='Enter')joinRoom()});
+$('bLocal').onclick=()=>{mode='local';isHost=true;show('game');$('who').textContent='One phone';$('net').textContent='';loadLevel(0)};
+</script>
+
+</body>
+</html>
