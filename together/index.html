@@ -75,7 +75,7 @@ canvas{width:100%;height:100%;display:block}
 <div class="wrap">
   <section class="screen" id="home">
     <h1>Two Halves</h1>
-    <p class="sub">Together. Five levels you can only beat as a team. Use the chat to guide each other.</p>
+    <p class="sub">Chapter 1 · Two Cities. Six stages you can only beat as a team. Use the chat to guide each other.</p>
     <button class="btn" id="bCreate">Create a room</button>
     <button class="btn ghost" id="bJoin">Join a room</button>
     <button class="btn ghost" id="bLocal">Play on one phone</button>
@@ -101,7 +101,7 @@ canvas{width:100%;height:100%;display:block}
   </section>
 
   <section class="screen" id="game" hidden>
-    <div class="hud"><span id="who"></span><div class="dots" id="dots"><i></i><i></i><i></i><i></i><i></i></div><span id="net"></span></div>
+    <div class="hud"><span id="who"></span><div class="dots" id="dots"><i></i><i></i><i></i><i></i><i></i><i></i></div><span id="net"></span></div>
     <div class="boardwrap" id="bw">
       <canvas id="cv" width="540" height="780"></canvas>
       <button id="skip" hidden style="position:absolute;top:12px;right:12px;z-index:5;font:inherit;font-size:12px;letter-spacing:.14em;text-transform:uppercase;background:rgba(0,0,0,.5);color:#f1e9e0;border:1px solid #2b2624;border-radius:999px;padding:6px 12px;cursor:pointer">Skip ›</button>
@@ -137,7 +137,7 @@ const buzz=ms=>{try{navigator.vibrate&&navigator.vibrate(ms)}catch(_){}};
 
 /* ============ levels ============ */
 const LV=[
- {name:'Switches',sub:'Two doors on each side. Every switch opens the other one’s door, only while someone stands on it.',map:[
+ {type:'doors',name:'Switches',sub:'Two doors on each side. Every switch opens the other one’s door, only while someone stands on it.',map:[
  '#########',
  '#.A.#.B.#',
  '#...#...#',
@@ -151,7 +151,7 @@ const LV=[
  '#...#.P.#',
  '#.a.#.b.#',
  '#########']},
- {name:'Blind guide',sub:'The walker sees nothing. The guide sees the maze. You only have 34 steps. Then swap.',limit:34,mazes:[[
+ {type:'blind',name:'Blind guide',sub:'The walker sees nothing. The guide sees the maze. You only have 34 steps. Then swap.',limit:34,mazes:[[
  '#########',
  '#B..#...#',
  '###.#.#.#',
@@ -178,7 +178,7 @@ const LV=[
  '###.#.#.#',
  '#a..#...#',
  '#########']]},
- {name:'The rope',sub:'Tied together, never more than two steps apart. Two sets of spikes take turns. One wrong step and you both start over.',map:[
+ {type:'rope',name:'The rope',sub:'Tied together, never more than two steps apart. Two sets of spikes take turns. One wrong step and you both start over.',map:[
  '#########',
  '#..A.B..#',
  '#.#####.#',
@@ -192,8 +192,22 @@ const LV=[
  '#.#####.#',
  '#..a.b..#',
  '#########']},
- {name:'The secret code',sub:'One of you sees the code. The other holds the keys. Wrong once and the lock changes the code.'},
- {name:'Meet in the middle',timed:true,sub:'These switches only flash the door open for two seconds. Wait at the door. Say “go”. Move.',map:[
+ {type:'pools',name:'Rose & sand',sub:'Rose water is safe only for her. Warm sand only for him. Dark water takes you both, unless a bridge is up. Grab your own gem before the exit.',map:[
+ '#########',
+ '#B..#..A#',
+ '#sss#rrr#',
+ '#.m.#.hK#',
+ '#sss#rrr#',
+ '#...x..K#',
+ '#rrr#sss#',
+ '#...#...#',
+ '#.#.#.#.#',
+ '#...#...#',
+ '#.#.#.#.#',
+ '#a..#..b#',
+ '#########']},
+ {type:'code',name:'The secret code',sub:'One of you sees the code. The other holds the keys. Wrong once and the lock changes the code.'},
+ {type:'meet',name:'Meet in the middle',timed:true,sub:'These switches only flash the door open for two seconds. Wait at the door. Say “go”. Move.',map:[
  '#########',
  '#a.#.#.b#',
  '#.##.##.#',
@@ -208,6 +222,7 @@ const LV=[
  '#..A#B..#',
  '#########']}
 ];
+const TY=()=>LV[lvl]?LV[lvl].type:'';let gems={h:0,m:0};
 const W=9,H=13,T=60,SYM=['♥','★','◆','●','▲','✦'];
 
 /* ============ state ============ */
@@ -229,7 +244,7 @@ function spikeOn(ch){const ph=((performance.now()-levelT0)%1600)<800;return ch==
 function walker(){return phase===0?'him':'her'}
 
 function loadLevel(i){
-  lvl=i;phase=0;levelT0=performance.now();finT0=0;steps=0;codeIn=[];code=null;parts=[];for(const k in pressT)delete pressT[k];
+  lvl=i;phase=0;levelT0=performance.now();finT0=0;steps=0;gems={h:0,m:0};codeIn=[];code=null;parts=[];for(const k in pressT)delete pressT[k];
   const L=LV[i];map=L.mazes?L.mazes[0]:(L.map||null);findStarts();snap();
   [...$('dots').children].forEach((d,j)=>d.classList.toggle('on',j<i));
   buildControls();intro(i);
@@ -243,13 +258,14 @@ function snap(){['her','him'].forEach(r=>{rp[r].x=pos[r].x;rp[r].y=pos[r].y})}
 let ovTimer=0,seenPrologue=false;
 function overlay(n,t,s,ms,btn,fn){$('ovN').textContent=n;$('ovT').textContent=t;$('ovS').textContent=s;$('ov').classList.add('show');const b=$('ovBtn');
   if(btn){b.hidden=false;b.textContent=btn;b.onclick=fn}else b.hidden=true;clearTimeout(ovTimer);if(ms)ovTimer=setTimeout(()=>$('ov').classList.remove('show'),ms)}
-async function intro(i){playing=false;$('ov').classList.remove('show');if(i===0&&!seenPrologue){seenPrologue=true;await playScene('prologue')}await playScene(i+1);if(lvl!==i)return;overlay('Level '+(i+1)+' of 5',LV[i].name,LV[i].sub,3000);setTimeout(()=>{if(lvl!==i)return;playing=true;levelT0=performance.now();if(i===3&&isHost)newCode(0);tipText()},3000)}
+async function intro(i){playing=false;$('ov').classList.remove('show');if(i===0&&!seenPrologue){seenPrologue=true;await playScene('prologue')}await playScene(LV[i].type);if(lvl!==i)return;overlay('Stage '+(i+1)+' of 6',LV[i].name,LV[i].sub,3000);setTimeout(()=>{if(lvl!==i)return;playing=true;levelT0=performance.now();if(LV[i].type==='code'&&isHost)newCode(0);tipText()},3000)}
 function tipText(){let t='';
   if(lvl===0)t='<b>Switches open the other side’s door</b> only while someone stands on them.';
   if(lvl===1){const w=walker(),left=LV[1].limit-steps;t=(mode==='local'?`<b>${w==='him'?'Him':'Her'}</b> walks blind.`:(me===w?'<b>You can’t see the walls.</b> Ask your guide.':'<b>You see the maze.</b> Guide them in the chat.'))+` Steps left: <b>${left}</b>`}
   if(lvl===2)t='<b>Stay within two steps.</b> Spikes swap every 0.8 s. Plan in the chat.';
-  if(lvl===3){if(mode==='local')t=`<b>Memorise the code.</b> Round ${codeRound+1} of 3.`;else t=(me===codeView?'<b>You hold the code.</b> Tell them in the chat, fast.':'<b>You hold the keys.</b> Ask for the code.')+` Round ${codeRound+1} of 3.`}
-  if(lvl===4)t='<b>Each switch opens a door for 2 seconds.</b> Be at the door before you say go.';
+  if(TY()==='code'){if(mode==='local')t=`<b>Memorise the code.</b> Round ${codeRound+1} of 3.`;else t=(me===codeView?'<b>You hold the code.</b> Tell them in the chat, fast.':'<b>You hold the keys.</b> Ask for the code.')+` Round ${codeRound+1} of 3.`}
+  if(TY()==='pools')t='<b>Her: rose water only. Him: sand only.</b> Hold a silver switch to raise the bridge. Grab your gem.';
+  if(TY()==='meet')t='<b>Each switch opens a door for 2 seconds.</b> Be at the door before you say go.';
   $('tip').innerHTML=t}
 
 /* ============ particles ============ */
@@ -257,7 +273,7 @@ function burst(x,y,col,n=14,spd=140,heart=false){for(let i=0;i<n;i++){const a=Ma
 
 /* ============ movement ============ */
 function canMove(r,dx,dy){const p=pos[r],nx=p.x+dx,ny=p.y+dy,c=tile(nx,ny);
-  if(LV[lvl].mazes&&r!==walker())return 'none';if(lvl===3)return 'none';
+  if(LV[lvl].mazes&&r!==walker())return 'none';if(TY()==='code')return 'none';
   if(c==='#')return 'wall';if((c==='p'||c==='c')&&!doorOpen(c))return 'door';
   if(lvl===2){const o=pos[other(r)];if(Math.max(Math.abs(nx-o.x),Math.abs(ny-o.y))>2)return 'rope'}
   return ''}
@@ -271,31 +287,38 @@ function move(r,dx,dy){
   if(LV[lvl].mazes){steps++;tipText();if(steps>LV[1].limit){outOfSteps(true);return}}
   afterMove(r,true);
 }
+function bridgeUp(){return onSwitch('K')}
+function deadly(r){const c=tile(pos[r].x,pos[r].y);return (r==='her'&&c==='s')||(r==='him'&&c==='r')||(c==='x'&&!bridgeUp())}
 function afterMove(r,mine){
   const c=tile(pos[r].x,pos[r].y);
+  if(TY()==='pools'){if(c==='h'&&r==='her'&&!gems.h){gems.h=1;sfx.good();burst(pos[r].x*T+T/2,pos[r].y*T+T/2,COL.her,18,150,true)}
+    if(c==='m'&&r==='him'&&!gems.m){gems.m=1;sfx.good();burst(pos[r].x*T+T/2,pos[r].y*T+T/2,COL.him,18,150,true)}
+    if(c==='K')sfx.click();
+    if((mine||mode==='local')&&deadly(r)){if(mine)send({t:'pos',r,x:pos[r].x,y:pos[r].y,lvl,phase,steps});hurt(true);return}}
   if(c==='P'||c==='C'){pressT[c]=performance.now();sfx.click();burst(pos[r].x*T+T/2,pos[r].y*T+T/2,c==='P'?COL.her:COL.him,10,90)}
   if(mine)send({t:'pos',r,x:pos[r].x,y:pos[r].y,lvl,phase,steps});
   if(mine)checkHazard(r);check();
 }
 function outOfSteps(sendIt){sfx.hurt();buzz(150);shake=10;const w=walker();pos[w]={...start[w]};snap();steps=0;tipText();$('tip').innerHTML='<b>Out of steps.</b> Back to the start. Plan the route in the chat first.';if(sendIt)send({t:'oos',lvl,phase})}
 function checkHazard(r){if(lvl!==2)return;const c=tile(pos[r].x,pos[r].y);if((c==='^'||c==='v')&&spikeOn(c))hurt(true)}
-function hurt(sendIt){sfx.hurt();buzz(160);shake=12;flashT=performance.now();['her','him'].forEach(r=>burst(rp[r].x*T+T/2,rp[r].y*T+T/2,'#ff8f86',16,160));
-  pos.her={...start.her};pos.him={...start.him};$('tip').innerHTML='<b>Spikes.</b> Back to the start, together.';if(sendIt)send({t:'hurt',lvl})}
+function hurt(sendIt){gems={h:0,m:0};sfx.hurt();buzz(160);shake=12;flashT=performance.now();['her','him'].forEach(r=>burst(rp[r].x*T+T/2,rp[r].y*T+T/2,'#ff8f86',16,160));
+  pos.her={...start.her};pos.him={...start.him};$('tip').innerHTML=TY()==='pools'?'<b>Wrong water.</b> Back to the start, together. Gems reset.':'<b>Spikes.</b> Back to the start, together.';if(sendIt)send({t:'hurt',lvl})}
 
 /* ============ win checks (host decides) ============ */
 const at=(r,ch)=>tile(pos[r].x,pos[r].y)===ch;
 function check(){if(!isHost||!playing)return;
-  if(lvl===0||lvl===2||lvl===4){if(at('her','A')&&at('him','B'))advance()}
+  if(['doors','rope','meet'].includes(TY())){if(at('her','A')&&at('him','B'))advance()}
+  if(TY()==='pools'){if(at('her','A')&&at('him','B')&&gems.h&&gems.m)advance()}
   if(lvl===1){const w=walker();if(at(w,w==='him'?'B':'A')){if(phase===0)setPhase(1,true);else advance()}}}
 function setPhase(p,sendIt){phase=p;map=LV[1].mazes[p];findStarts();snap();steps=0;sfx.win();if(sendIt)send({t:'phase',p});
   playing=false;overlay('Halfway','Now swap','The guide walks, the walker guides. 34 steps.',2400);setTimeout(()=>{playing=true;tipText()},2400)}
-function advance(){if(!playing&&lvl!==3)return;playing=false;sfx.win();buzz(80);['her','him'].forEach(r=>{if(pos[r].x>=0)burst(rp[r].x*T+T/2,rp[r].y*T+T/2,COL[r],22,180,true)});
-  const n=lvl+1;send({t:'go',lvl:n});setTimeout(()=>{if(n>=LV.length)finale();else loadLevel(n)},1200)}
+function advance(){if(!playing&&TY()!=='code')return;playing=false;sfx.win();buzz(80);['her','him'].forEach(r=>{if(pos[r].x>=0)burst(rp[r].x*T+T/2,rp[r].y*T+T/2,COL[r],22,180,true)});
+  const n=lvl+1,from=lvl;send({t:'go',lvl:n});setTimeout(async()=>{await playScene('out'+from);if(n>=LV.length)finale();else loadLevel(n)},1000)}
 
 /* ============ level 4: secret code ============ */
 function newCode(r){codeRound=r;const len=[4,5,6][r];code=Array.from({length:len},()=>Math.floor(Math.random()*SYM.length));codeView=r%2===0?'her':'him';codeIn=[];
   codeDeadline=performance.now()+(mode==='local'?20000:60000);codeShowUntil=performance.now()+2200+len*500;send({t:'code',r,code,view:codeView});buildControls();tipText()}
-function key(i){if(!playing||lvl!==3||!code)return;if(mode==='net'&&me===codeView)return;
+function key(i){if(!playing||TY()!=='code'||!code)return;if(mode==='net'&&me===codeView)return;
   codeIn.push(i);sfx.click();buzz(10);send({t:'ent',codeIn});
   const k=codeIn.length-1;if(codeIn[k]!==code[k]){codeIn=[];sfx.bad();buzz(150);shake=10;$('tip').innerHTML='<b>Wrong.</b> The lock changed the code.';send({t:'cbad'});if(isHost)setTimeout(()=>newCode(codeRound),700);return}
   if(codeIn.length===code.length){sfx.good();burst(270,300,COL.her,24,200,true);send({t:'cok'});if(isHost)codeOK()}}
@@ -304,27 +327,42 @@ function codeOK(){if(codeRound>=2){advance()}else setTimeout(()=>newCode(codeRou
 /* ============ finale ============ */
 async function finale(){playing=false;[...$('dots').children].forEach(d=>d.classList.add('on'));map=null;code=null;
   $('controls').innerHTML='';$('tip').innerHTML='';sfx.win();await playScene('end');finT0=performance.now();
-  setTimeout(()=>overlay('You did it, together','Two halves.\nOne heart.','Not one level was possible alone. Neither is this 🤍',0,'Play again',()=>{$('ov').classList.remove('show');if(mode==='local'||isHost){send({t:'go',lvl:0});loadLevel(0)}else send({t:'again'})}),2600)}
+  setTimeout(()=>overlay('Chapter 1 complete','Two halves.\nOne heart.','Not one stage was possible alone. Neither is this 🤍 Chapter 2 · Riyadh, coming soon.',0,'Play again',()=>{$('ov').classList.remove('show');if(mode==='local'||isHost){send({t:'go',lvl:0});loadLevel(0)}else send({t:'again'})}),2600)}
 
 /* ============ story cutscenes (original story: Dil, the keeper of hearts) ============ */
 let scene=null;
+const MEM=['a shy first hello that changed everything','a voice that always finds its way home','23.03, the day two families said yes','chai, biscuits, and every little thing they share','23.09, the day they said qubool hai','a heart made from one arm and one hand'];
 const STORY={
  prologue:[
+  {d:3800,txt:'Chapter 1 · Two Cities',f:(t,k)=>{cx.fillStyle='#000';cx.fillRect(0,0,540,780);cx.save();cx.globalAlpha=Math.min(1,k*3);cx.textAlign='center';cx.fillStyle='#a59c95';cx.font='500 13px Jost, sans-serif';cx.fillText('TWO HALVES',270,330);cx.fillStyle='#f1e9e0';cx.font='italic 500 52px "Cormorant Garamond", serif';cx.fillText('Two Cities',270,400);cx.fillStyle=COL.her;cx.font='500 12px Jost, sans-serif';cx.fillText('CHAPTER ONE',270,440);cx.restore()}},
   {d:3600,txt:'Once, there was one heart.',f:(t,k)=>{sky(t,0);const s=150+Math.sin(t/400)*6;glowHeart(270,300,s,k)}},
   {d:3600,txt:'Then life split it in two.',f:(t,k)=>{sky(t,0);const e=ease(Math.min(1,k*1.4));cx.fillStyle=COL.her;heartHalf(270-150*e,260-60*e,150,true);cx.fillStyle=COL.him;heartHalf(270+150*e,260-60*e,150,false);if(k<.3)crack(270,300,k/.3)}},
   {d:4200,txt:'One half landed in Karachi. The other, in Riyadh.',f:(t,k)=>{sky(t,.3);skyline(0,'k');skyline(1,'r');const e=ease(Math.min(1,k*1.3));
      blob('her',135,120+460*e,t,true);blob('him',405,120+460*e,t,true);if(k>.75){cx.font='500 12px Jost, sans-serif';cx.fillStyle='#a59c95';cx.textAlign='center';cx.fillText('KARACHI',135,640);cx.fillText('RIYADH',405,640);cx.textAlign='left'}}},
   {d:4200,txt:'Every night they looked at the same moon, 2,050 km apart.',f:(t,k)=>{sky(t,.5);moon(270,190,k);skyline(0,'k');skyline(1,'r');blob('her',135,580,t,true,0,-1);blob('him',405,580,t,true,0,-1);dashLine(170,560,370,560,k)}},
-  {d:4400,txt:'And Dil, the keeper of hearts, had a plan.',f:(t,k)=>{sky(t,.4);dil(270,330-40*Math.sin(Math.min(1,k*1.5)*Math.PI/2),t,k);blob('her',150,600,t,true,1,-1);blob('him',390,600,t,true,-1,-1)}}],
- 1:[{d:4400,txt:'Dil built a house of doors. “Each of you holds the other’s key.”',f:(t,k)=>{room(t);doorArt(170,330,COL.her,k);doorArt(370,330,COL.him,1-k);dil(270,190,t,k);blob('her',150,580,t,true);blob('him',390,580,t,true)}}],
- 2:[{d:4400,txt:'Then came the fog. The kind that rolls in when you miss someone too much.',f:(t,k)=>{sky(t,.2);blob('him',330,520,t,true);fog(t,k);blob('her',150,520,t,true,1,0)}}],
- 3:[{d:4400,txt:'Dil tied a thread between them. “Wherever one goes, the other follows.”',f:(t,k)=>{room(t);const a={x:170,y:560},b={x:370,y:560};const e=ease(Math.min(1,k*1.4));cx.strokeStyle='#d9837c';cx.lineWidth=4;cx.beginPath();cx.moveTo(a.x,a.y+8);cx.quadraticCurveTo(270,580+40*e,a.x+(b.x-a.x)*e,a.y+8);cx.stroke();blob('her',a.x,a.y,t,true,1,0);blob('him',b.x,b.y,t,true,-1,0);dil(270,270,t,k)}}],
- 4:[{d:4400,txt:'At the centre sat a lock, keeping a secret only two could open.',f:(t,k)=>{room(t);const z=1+k*.25;cx.save();cx.translate(270,330);cx.scale(z,z);cx.strokeStyle='#5a504b';cx.lineWidth=12;cx.beginPath();cx.arc(0,-40,52,Math.PI,0);cx.stroke();cx.fillStyle='#231d1c';cx.beginPath();cx.roundRect(-86,-44,172,136,20);cx.fill();cx.fillStyle=COL.her;heartPath(0,0,46);cx.fill();cx.restore();blob('her',150,600,t,true,1,-1);blob('him',390,600,t,true,-1,-1)}}],
- 5:[{d:4400,txt:'One last road. Two paths. One place to meet.',f:(t,k)=>{sky(t,.6);roads(k);blob('her',110+100*k,540,t,true,1,0);blob('him',430-100*k,540,t,true,-1,0)}}],
+  {d:4400,txt:'And Dil, the keeper of hearts, had a plan.',f:(t,k)=>{sky(t,.4);dil(270,330-40*Math.sin(Math.min(1,k*1.5)*Math.PI/2),t,k);blob('her',150,600,t,true,1,-1);blob('him',390,600,t,true,-1,-1)}},
+  {d:5200,txt:'Dil gathered their memories into six pieces and hid them on the road between two cities.',f:(t,k)=>{sky(t,.4);dil(270,250,t,1);for(let i=0;i<6;i++){const a=i/6*Math.PI*2+t/900,R=40+200*ease(k);shard(270+Math.cos(a)*R,300+Math.sin(a)*R*.8,i)}}},
+  {d:4600,txt:'“Find them together,” Dil said, “and the road will bring you home.”',f:(t,k)=>{sky(t,.5);roads(1);dil(270,230,t,1);blob('her',150,560,t,true,1,-1);blob('him',390,560,t,true,-1,-1)}}],
+ doors:[{d:4400,txt:'Dil built a house of doors. “Each of you holds the other’s key.”',f:(t,k)=>{room(t);doorArt(170,330,COL.her,k);doorArt(370,330,COL.him,1-k);dil(270,190,t,k);blob('her',150,580,t,true);blob('him',390,580,t,true)}}],
+ blind:[{d:4400,txt:'Then came the fog. The kind that rolls in when you miss someone too much.',f:(t,k)=>{sky(t,.2);blob('him',330,520,t,true);fog(t,k);blob('her',150,520,t,true,1,0)}}],
+ rope:[{d:4400,txt:'Dil tied a thread between them. “Wherever one goes, the other follows.”',f:(t,k)=>{room(t);const a={x:170,y:560},b={x:370,y:560};const e=ease(Math.min(1,k*1.4));cx.strokeStyle='#d9837c';cx.lineWidth=4;cx.beginPath();cx.moveTo(a.x,a.y+8);cx.quadraticCurveTo(270,580+40*e,a.x+(b.x-a.x)*e,a.y+8);cx.stroke();blob('her',a.x,a.y,t,true,1,0);blob('him',b.x,b.y,t,true,-1,0);dil(270,270,t,k)}}],
+ code:[{d:4400,txt:'At the centre sat a lock, keeping a secret only two could open.',f:(t,k)=>{room(t);const z=1+k*.25;cx.save();cx.translate(270,330);cx.scale(z,z);cx.strokeStyle='#5a504b';cx.lineWidth=12;cx.beginPath();cx.arc(0,-40,52,Math.PI,0);cx.stroke();cx.fillStyle='#231d1c';cx.beginPath();cx.roundRect(-86,-44,172,136,20);cx.fill();cx.fillStyle=COL.her;heartPath(0,0,46);cx.fill();cx.restore();blob('her',150,600,t,true,1,-1);blob('him',390,600,t,true,-1,-1)}}],
+ meet:[{d:4400,txt:'One last road. Two paths. One place to meet.',f:(t,k)=>{sky(t,.6);roads(k);blob('her',110+100*k,540,t,true,1,0);blob('him',430-100*k,540,t,true,-1,0)}}],
+ pools:[{d:4600,txt:'Dil poured two rivers. Rose water only she could wade. Warm sand only he could cross.',f:(t,k)=>{sky(t,.3);river(150,'r',t,k);river(390,'s',t,k);blob('her',150,560,t,true,0,-1);blob('him',390,560,t,true,0,-1);dil(270,200,t,k)}}],
  end:[
+  {d:4400,txt:'The last piece was never hidden. It was them.',f:(t,k)=>{room(t);heartFill(6,1,t);blob('her',210,600,t,true,1,-1);blob('him',330,600,t,true,-1,-1)}},
   {d:4200,txt:'And when they finally met…',f:(t,k)=>{sky(t,.8);const e=ease(k);blob('her',150+100*e,560,t,true,1,0);blob('him',390-100*e,560,t,true,-1,0);if(k>.85&&Math.random()<.5)burst(270,540,COL.her,2,120,true)}},
-  {d:5400,txt:'…the halves remembered. They were always one heart.',f:(t,k)=>{sky(t,1);const e=ease(Math.min(1,k*1.3));cx.fillStyle=COL.her;heartHalf(270-120*(1-e),210,220,true);cx.fillStyle=COL.him;heartHalf(270+120*(1-e),210,220,false);if(k>.75&&Math.random()<.4)burst(270,330,Math.random()<.5?COL.her:COL.him,2,180,true)}}]
+  {d:5400,txt:'…the halves remembered. They were always one heart.',f:(t,k)=>{sky(t,1);const e=ease(Math.min(1,k*1.3));cx.fillStyle=COL.her;heartHalf(270-120*(1-e),210,220,true);cx.fillStyle=COL.him;heartHalf(270+120*(1-e),210,220,false);if(k>.75&&Math.random()<.4)burst(270,330,Math.random()<.5?COL.her:COL.him,2,180,true)}},
+  {d:5200,txt:'But their story was only beginning. Next stop: one home, in Riyadh.',f:(t,k)=>{sky(t,.9);skyline(0,'r');skyline(1,'r');moon(270,190,1);blob('her',250,590,t,true,0,-1);blob('him',290,590,t,true,0,-1);dil(400,300,t,1)}},
+  {d:4200,txt:'Chapter 2 · Riyadh. Coming soon.',f:(t,k)=>{cx.fillStyle='#000';cx.fillRect(0,0,540,780);cx.save();cx.globalAlpha=Math.min(1,k*3);cx.textAlign='center';cx.fillStyle='#a59c95';cx.font='500 13px Jost, sans-serif';cx.fillText('CHAPTER ONE COMPLETE',270,330);cx.fillStyle='#f1e9e0';cx.font='italic 500 46px "Cormorant Garamond", serif';cx.fillText('To be continued',270,400);cx.fillStyle=COL.her;cx.font='500 12px Jost, sans-serif';cx.fillText('CHAPTER TWO · RIYADH',270,440);cx.restore()}}]
 };
+for(let n=0;n<6;n++)STORY['out'+n]=[{d:5200,txt:'Piece '+(n+1)+' of 6: '+MEM[n]+'.',f:(t,k)=>{room(t);const fly=ease(Math.min(1,k*1.6));heartFill(n,1,t);if(k<.62)shard(270,120+190*fly,n,1.8-fly*.8);else heartFill(n+1,Math.min(1,(k-.62)*3),t);blob('her',190,620,t,true,1,-1);blob('him',350,620,t,true,-1,-1)}}];
+function shard(x,y,n,z=1){const col=n%2?COL.him:COL.her;cx.save();cx.translate(x,y);cx.scale(z,z);cx.rotate(Math.PI/4+Math.sin(performance.now()/400+n)*.2);cx.shadowColor=col;cx.shadowBlur=18;cx.fillStyle=col;cx.fillRect(-10,-10,20,20);cx.restore();cx.shadowBlur=0}
+function heartFill(n,a,t){const s=230,x=270,y=180;cx.save();cx.lineWidth=3;cx.strokeStyle='rgba(239,184,177,.6)';heartPath(x,y,s);cx.stroke();cx.clip();
+  const prev=Math.max(0,n-1)/6,cur=n/6,frac=prev+(cur-prev)*a,top=y+s-(s+10)*frac;const g=cx.createLinearGradient(x-s/2,0,x+s/2,0);g.addColorStop(0,COL.her);g.addColorStop(.5,COL.her);g.addColorStop(.5,COL.him);g.addColorStop(1,COL.him);cx.fillStyle=g;cx.globalAlpha=.85;cx.fillRect(x-s,top,s*2,s*2);
+  cx.globalAlpha=.25;cx.strokeStyle='#0a0808';cx.lineWidth=2;for(let i=1;i<6;i++){const yy=y+s-(s+10)*i/6;cx.beginPath();cx.moveTo(x-s,yy);cx.lineTo(x+s,yy);cx.stroke()}cx.restore();
+  cx.textAlign='center';cx.fillStyle='#a59c95';cx.font='500 12px Jost, sans-serif';cx.fillText(Math.min(6,n)+' / 6 PIECES',x,y+s+34);cx.textAlign='left'}
+function river(x,kind,t,k){const col=kind==='r'?[239,184,177]:[243,227,195];cx.fillStyle=`rgba(${col},${.3*Math.min(1,k*2)})`;cx.fillRect(x-70,260,140,260);cx.strokeStyle=`rgba(${col},${.8*Math.min(1,k*2)})`;cx.lineWidth=2;for(let w=0;w<8;w++){cx.beginPath();for(let i=0;i<=140;i+=8){const yy=280+w*30+Math.sin(i/12+t/300+w)*4;i?cx.lineTo(x-70+i,yy):cx.moveTo(x-70,yy)}cx.stroke()}}
 const ease=x=>1-Math.pow(1-Math.min(1,Math.max(0,x)),3);
 function sky(t,warm){const g=cx.createLinearGradient(0,0,0,780);g.addColorStop(0,'#07060a');g.addColorStop(1,`rgb(${20+30*warm},${14+12*warm},${18+8*warm})`);cx.fillStyle=g;cx.fillRect(0,0,540,780);
   for(let i=0;i<60;i++){const x=(i*97)%540,y=70+(i*53)%380,tw=.4+.6*Math.abs(Math.sin(t/700+i));cx.globalAlpha=tw*.8;cx.fillStyle='#f1e9e0';cx.fillRect(x,y,1.6,1.6)}cx.globalAlpha=1}
@@ -383,7 +421,7 @@ function onMsg(o){
   case 'oos':if(o.lvl===lvl)outOfSteps(false);break;
   case 'hurt':if(o.lvl===lvl)hurt(false);break;
   case 'phase':setPhase(o.p,false);break;
-  case 'go':$('ov').classList.remove('show');if(o.lvl>=LV.length)finale();else loadLevel(o.lvl);break;
+  case 'go':$('ov').classList.remove('show');(async()=>{if(o.lvl===lvl+1){playing=false;await new Promise(r=>setTimeout(r,1000));await playScene('out'+lvl)}if(o.lvl>=LV.length)finale();else loadLevel(o.lvl)})();break;
   case 'again':if(isHost){$('ov').classList.remove('show');send({t:'go',lvl:0});loadLevel(0)}break;
   case 'code':codeRound=o.r;code=o.code;codeView=o.view;codeIn=[];codeDeadline=performance.now()+60000;buildControls();tipText();break;
   case 'ent':codeIn=o.codeIn;sfx.click();break;
@@ -423,7 +461,7 @@ function startNet(){netStatus(true);show('game');$('who').innerHTML='You are <b 
 /* ============ controls ============ */
 function padHTML(role,small){const r=role?` data-r="${role}"`:'';return `<div class="pad ${role||''} ${small?'small':''}"><span></span><button${r} data-d="0,-1" aria-label="Up">▲</button><span></span><button${r} data-d="-1,0" aria-label="Left">◀</button><span class="lbl">${role?role.toUpperCase():''}</span><button${r} data-d="1,0" aria-label="Right">▶</button><span></span><button${r} data-d="0,1" aria-label="Down">▼</button><span></span></div>`}
 function buildControls(){const c=$('controls');
-  if(lvl===3){if(!code){c.innerHTML='';return}
+  if(TY()==='code'){if(!code){c.innerHTML='';return}
     if(mode==='net'&&me===codeView){c.innerHTML='<div class="keys"><p class="note">You hold the code. Type it to them in the chat.</p></div>';return}
     c.innerHTML='<div class="keys">'+SYM.map((s,i)=>`<button data-k="${i}" aria-label="${s}">${s}</button>`).join('')+'</div>';
     c.querySelectorAll('[data-k]').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();key(+b.dataset.k)}));return}
@@ -435,7 +473,7 @@ function buildControls(){const c=$('controls');
 }
 const KEYS={ArrowUp:['her',0,-1],ArrowDown:['her',0,1],ArrowLeft:['her',-1,0],ArrowRight:['her',1,0],w:['him',0,-1],s:['him',0,1],a:['him',-1,0],d:['him',1,0]};
 document.addEventListener('keydown',e=>{if($('game').hidden||document.activeElement===$('chatIn'))return;
-  if(lvl===3&&/^[1-6]$/.test(e.key)){key(+e.key-1);return}
+  if(TY()==='code'&&/^[1-6]$/.test(e.key)){key(+e.key-1);return}
   const k=KEYS[e.key]||KEYS[(e.key||'').toLowerCase()];if(!k)return;e.preventDefault();move(mode==='local'?k[0]:me,k[1],k[2])});
 (()=>{let sx=0,sy=0,act=false;const bw=$('bw');
   bw.addEventListener('pointerdown',e=>{act=true;sx=e.clientX;sy=e.clientY});
@@ -475,7 +513,7 @@ function draw(t){const dt=Math.min(.05,(t-(lastT||t))/1000);lastT=t;
   shake*=Math.pow(.02,dt);
   cx.save();cx.fillStyle='#0a0808';cx.fillRect(0,0,cv.width,cv.height);
   if(shake>.3)cx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
-  if(scene)drawScene(t);else if(lvl===3&&!finT0)drawCode(t);else if(!map)drawFinale(t);else drawBoard(t);
+  if(scene)drawScene(t);else if(TY()==='code'&&!finT0)drawCode(t);else if(!map)drawFinale(t);else drawBoard(t);
   // particles
   parts.forEach(p=>{p.age+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=260*dt;p.vx*=.98;const a=Math.max(0,1-p.age/p.life);cx.globalAlpha=a;cx.fillStyle=p.col;
     if(p.heart){heartPath(p.x,p.y-p.r*2,p.r*3.2);cx.fill()}else{cx.beginPath();cx.arc(p.x,p.y,p.r*a+.5,0,7);cx.fill()}});cx.globalAlpha=1;
@@ -498,6 +536,12 @@ function drawBoard(t){
       cx.save();cx.beginPath();cx.rect(X,Y,T,T);cx.clip();const lift=o*(T-6);
       for(let i=0;i<4;i++){const bx=X+7+i*12;const g=cx.createLinearGradient(bx,0,bx+6,0);g.addColorStop(0,col);g.addColorStop(1,'rgba(0,0,0,.35)');cx.fillStyle=g;cx.fillRect(bx,Y+4-lift,6,T-8)}
       cx.restore();cx.strokeStyle=col;cx.globalAlpha=.4+.4*(1-o);cx.lineWidth=1.5;cx.strokeRect(X+3,Y+3,T-6,T-6);cx.globalAlpha=1}
+    if(c==='r'||c==='s'){const col=c==='r'?[239,184,177]:[243,227,195];const g=cx.createLinearGradient(X,Y,X,Y+T);g.addColorStop(0,`rgba(${col},.55)`);g.addColorStop(1,`rgba(${col},.25)`);cx.fillStyle=g;cx.fillRect(X,Y+6,T,T-6);
+      cx.strokeStyle=`rgba(${col},.9)`;cx.lineWidth=1.5;for(let w=0;w<2;w++){cx.beginPath();for(let i=0;i<=T;i+=6){const yy=Y+14+w*18+Math.sin((i+X)/9+t/300+w)*2.5;i?cx.lineTo(X+i,yy):cx.moveTo(X,yy)}cx.stroke()}}
+    if(c==='x'){const up=bridgeUp();cx.fillStyle='#050404';cx.fillRect(X,Y,T,T);cx.strokeStyle='rgba(120,100,140,.35)';cx.lineWidth=1;for(let w=0;w<3;w++){cx.beginPath();cx.arc(X+T/2,Y+T/2,8+w*8+Math.sin(t/400+w)*2,0,7);cx.stroke()}
+      if(up){cx.fillStyle='#6b5a4a';for(let i=0;i<4;i++)cx.fillRect(X+2,Y+6+i*13,T-4,9);cx.fillStyle='#8a7560';for(let i=0;i<4;i++)cx.fillRect(X+2,Y+6+i*13,T-4,2)}}
+    if(c==='K'){const on=onSwitch('K');cx.fillStyle='#0c0a0a';cx.beginPath();cx.ellipse(X+T/2,Y+T/2+4,17,9,0,0,7);cx.fill();cx.fillStyle='#cfc6c0';cx.globalAlpha=on?1:.45;cx.beginPath();cx.ellipse(X+T/2,Y+T/2+(on?3:0),15,8,0,0,7);cx.fill();cx.globalAlpha=1}
+    if((c==='h'&&!gems.h)||(c==='m'&&!gems.m)){const col=c==='h'?COL.her:COL.him,fl=Math.sin(t/250)*3;cx.save();cx.translate(X+T/2,Y+T/2+fl);cx.rotate(Math.PI/4);cx.shadowColor=col;cx.shadowBlur=16;cx.fillStyle=col;cx.fillRect(-9,-9,18,18);cx.restore();cx.shadowBlur=0}
     if(c==='^'||c==='v'){const h=spikeAmt[c],col=c==='^'?'#ff8f86':'#ffb27a';cx.fillStyle='#0d0b0b';cx.fillRect(X+5,Y+T-14,T-10,6);
       if(h>.05){cx.fillStyle=col;cx.shadowColor=col;cx.shadowBlur=14*h;for(let i=0;i<3;i++){const sx=X+10+i*14;cx.beginPath();cx.moveTo(sx,Y+T-10);cx.lineTo(sx+7,Y+T-10-(T-26)*h);cx.lineTo(sx+14,Y+T-10);cx.fill()}cx.shadowBlur=0}
       else{cx.fillStyle='#3a2a28';for(let i=0;i<3;i++)cx.fillRect(X+14+i*14,Y+T-12,6,2)}}
@@ -531,6 +575,7 @@ function drawFinale(t){const e=Math.min(1,(t-finT0)/1800),ease=1-Math.pow(1-e,3)
   cx.fillStyle=COL.her;heartHalf(270-110*(1-ease),150,s,true);cx.fillStyle=COL.him;heartHalf(270+110*(1-ease),150,s,false);
   if(e>=1&&Math.random()<.25)burst(270+(Math.random()-.5)*300,560,Math.random()<.5?COL.her:COL.him,1,120,true)}
 function loop(t){draw(t);
+  if(playing&&TY()==='pools'){['her','him'].forEach(r=>{if((mode==='local'||r===me)&&deadly(r))hurt(true)})}
   if(playing&&lvl===2){['her','him'].forEach(r=>{if(mode==='local'||r===me){const c=tile(pos[r].x,pos[r].y);if((c==='^'||c==='v')&&spikeOn(c))hurt(true)}})}
   requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
