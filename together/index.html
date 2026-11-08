@@ -72,12 +72,38 @@ canvas{width:100%;height:100%;display:block}
 .sheet form button{font:inherit;padding:0 18px;border-radius:999px;border:0;background:var(--blush);color:var(--ink);cursor:pointer}
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .3s;z-index:19}.scrim.open{opacity:1;pointer-events:auto}
 @media (prefers-reduced-motion:reduce){.overlay,.sheet{transition:none}}
+:root{--ink:#0b0709;--panel:#170e14;--panel2:#22141d;--line:#3a2530;--gold:#e6c27a}
+html,body{background:radial-gradient(ellipse 90% 45% at 50% -8%,rgba(239,184,177,.16),transparent 70%),radial-gradient(ellipse 80% 40% at 50% 108%,rgba(230,194,122,.12),transparent 70%),#0b0709 fixed}
+h1{text-shadow:0 0 30px rgba(239,184,177,.35)}
+#home h1{font-size:0}#home h1::before{content:"T W O \00a0 H A L V E S";display:block;font-family:var(--body);font-style:normal;font-size:11px;letter-spacing:.3em;color:var(--gold);margin-bottom:14px}
+#home h1::after{content:"Qubool Hai";font-size:clamp(44px,13vw,60px);display:block}
+#home .sub{max-width:32ch;margin:0 auto 10px}
+.orn,#home .sub::before{content:"";display:block;width:120px;height:9px;margin:4px auto 14px;background:linear-gradient(var(--gold),var(--gold)) 0 4px/52px 1px no-repeat,linear-gradient(var(--gold),var(--gold)) 68px 4px/52px 1px no-repeat,linear-gradient(45deg,transparent 35%,var(--gold) 35% 65%,transparent 65%) 55px 0/10px 9px no-repeat}
+.btn{background:linear-gradient(135deg,#f6e3d3,#e6c27a);border-color:transparent;box-shadow:0 6px 24px rgba(230,194,122,.18);transition:transform .15s,box-shadow .2s}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:rgba(23,14,20,.6);color:var(--paper);border:1px solid rgba(230,194,122,.3);box-shadow:none}
+.btn.her{background:linear-gradient(135deg,#f7cdc7,#e79c94)}.btn.him{background:linear-gradient(135deg,#faf0dc,#e2c99a)}
+.codebig{color:var(--gold);text-shadow:0 0 24px rgba(230,194,122,.4)}
+.boardwrap{border:1px solid rgba(230,194,122,.28);box-shadow:0 0 0 4px #0b0709,0 0 0 5px rgba(230,194,122,.12),0 18px 50px rgba(0,0,0,.6),0 0 60px rgba(239,184,177,.08)}
+.overlay{background:radial-gradient(ellipse at 50% 45%,rgba(42,16,34,.93),rgba(11,7,9,.95))}
+.overlay .n{color:var(--gold)}.overlay .t{text-shadow:0 0 24px rgba(239,184,177,.35)}
+.overlay .t::after{content:"";display:block;width:110px;height:9px;margin:12px auto 2px;background:linear-gradient(var(--gold),var(--gold)) 0 4px/48px 1px no-repeat,linear-gradient(var(--gold),var(--gold)) 62px 4px/48px 1px no-repeat,linear-gradient(45deg,transparent 35%,var(--gold) 35% 65%,transparent 65%) 50px 0/10px 9px no-repeat}
+.overlay.show .t,.overlay.show .s,.overlay.show .n{animation:rise .7s cubic-bezier(.2,.8,.2,1) both}.overlay.show .s{animation-delay:.12s}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.dots i{background:#3a2530}.dots i.on{background:var(--gold);box-shadow:0 0 8px rgba(230,194,122,.7)}
+.pad button,.bossctl button{background:linear-gradient(180deg,#1c1118,#140c11);border-color:#3a2530}
+.pad button.down,.bossctl button.down{box-shadow:0 0 18px rgba(230,194,122,.35) inset}
+.pad .pow{box-shadow:0 0 16px rgba(239,184,177,.15)}
+.tools button{border-color:rgba(230,194,122,.22)}.quick button{border-color:rgba(230,194,122,.18)}
+.spark{position:fixed;z-index:50;pointer-events:none;font-style:normal;color:var(--gold);font-size:16px;transform:translate(-50%,-50%);text-shadow:0 0 10px rgba(230,194,122,.9);animation:spark .75s ease-out forwards}
+@keyframes spark{0%{opacity:1;transform:translate(-50%,-50%) scale(.4)}40%{opacity:1;transform:translate(-50%,-90%) scale(1.15)}100%{opacity:0;transform:translate(-50%,-150%) scale(.7) rotate(25deg)}}
+@media (prefers-reduced-motion:reduce){.spark,.overlay.show .t,.overlay.show .s,.overlay.show .n{animation:none}}
 </style>
 
 <div class="wrap">
   <section class="screen" id="home">
     <h1>Two Halves</h1>
-    <p class="sub">Chapter 1 · Qubool Hai. Powers you use on each other, a boss you can only beat together, and quick mini-games.</p>
+    <p class="sub">Chapter 1. Powers you use on each other, puzzles you can only solve together, and a few quick duels.</p>
     <button class="btn" id="bCreate">Create a room</button>
     <button class="btn ghost" id="bJoin">Join a room</button>
     <button class="btn ghost" id="bLocal">Play on one phone</button>
@@ -222,9 +248,9 @@ function bubble(r,px,py,t){const b=bubbles[r];if(!b)return;const age=(t-b.t)/100
 
 /* ================= the chapter ================= */
 const PIECES=4;
-const MEM=['23.03 · the rings and the first “yes”','six months of good mornings and late-night chats','23.09 · qubool hai, three times','no more knots. only us'];
+const MEM=['23 · 03 · the ring','3,000 km of good mornings','23 · 09 · qubool hai','every knot, untied'];
 const STAGES={
- magnet:{name:'The Rishta',powers:{her:'pull',him:'push'},sub:'Two families, one nervous “haan”. His PUSH launches her across the gaps. Her PULL yanks him over to her. Throw each other forward.',
+ magnet:{name:'The Rishta',powers:{her:'pull',him:'push'},sub:'His PUSH launches her across the gaps. Her PULL brings him to her.',
   map:['#########',
        '#A.....B#',
        '#.......#',
@@ -252,7 +278,7 @@ const STAGES={
        '#ttttttt#',
        '#a.b....#',
        '#########']},
- seed:{name:'Six Months Apart',powers:{her:'plant',him:'rain'},sub:'Love that grows long-distance. Her PLANT grows flowers, or crowns him so he’s light enough to bounce. His RAIN waters soil, or rains on her so she grows big and heavy for 8 seconds.',
+ seed:{name:'3,000 km',powers:{her:'plant',him:'rain'},sub:'Her PLANT grows flowers, or crowns him so he’s light enough to bounce. His RAIN waters soil, or rains on her so she grows big and heavy for 8 seconds.',
   map:['#########',
        '#A.....B#',
        '#.......#',
@@ -372,8 +398,8 @@ function drawStage(t,dt){if(!G)return;const k=1-Math.pow(.0005,dt);
   ['her','him'].forEach(r=>{const a=G.rp[r],b=G.pos[r];a.x+=(b.x-a.x)*k;a.y+=(b.y-a.y)*k;if(Math.abs(b.x-a.x)>8||Math.abs(b.y-a.y)>8){a.x=b.x;a.y=b.y}});
   const open=gateOpen();G.doorAmt=(G.doorAmt||0)+((open?1:0)-(G.doorAmt||0))*Math.min(1,dt*10);
   for(let y=0;y<H;y++)for(let x=0;x<W;x++){const c=G.map[y][x],X=x*T,Y=y*T;
-    if(c==='#'){cx.fillStyle='#0d0b0b';cx.fillRect(X,Y,T,T);cx.fillStyle='#211b1b';cx.beginPath();cx.roundRect(X+3,Y+3,T-6,T-6,12);cx.fill();cx.fillStyle='rgba(255,255,255,.035)';cx.beginPath();cx.roundRect(X+6,Y+5,T-12,6,3);cx.fill();continue}
-    cx.fillStyle=(x+y)%2?'#121010':'#141111';cx.fillRect(X,Y,T,T);
+    if(c==='#'){cx.fillStyle='#0d0b0b';cx.fillRect(X,Y,T,T);cx.fillStyle='#22131d';cx.beginPath();cx.roundRect(X+3,Y+3,T-6,T-6,12);cx.fill();cx.fillStyle='rgba(230,194,122,.14)';cx.beginPath();cx.roundRect(X+6,Y+5,T-12,6,3);cx.fill();continue}
+    cx.fillStyle=(x+y)%2?'#120b10':'#150d13';cx.fillRect(X,Y,T,T);
     if(c==='o'){cx.fillStyle='#050404';cx.fillRect(X+2,Y+2,T-4,T-4);cx.fillStyle='rgba(160,150,170,.08)';for(let i=0;i<6;i++){const sx=X+4+((i*23+Math.floor(t/90)*7)%(T-10)),sy=Y+4+((i*37+Math.floor(t/90)*11)%(T-10));cx.fillRect(sx,sy,4,2)}}
     if(c==='t'||c==='T'){const br=c==='T';if(br){cx.fillStyle='#050404';cx.fillRect(X,Y,T,T);cx.fillStyle='#5a4636';cx.fillRect(X+22,Y,16,T)}cx.strokeStyle='#5f7a52';cx.lineWidth=2.5;const x0=br?20:4,x1=br?40:T-4;for(let i=0;i<3;i++){cx.beginPath();const yy=Y+12+i*16;cx.moveTo(X+x0,yy);for(let xx=x0;xx<=x1;xx+=8)cx.lineTo(X+xx,yy+((xx/8)%2?-5:5));cx.stroke()}
       cx.fillStyle='#8aa37c';for(let i=0;i<4;i++){cx.beginPath();const sx=X+x0+4+((i*13)%(x1-x0-8)),sy=Y+10+i*12;cx.moveTo(sx,sy);cx.lineTo(sx+3,sy-6);cx.lineTo(sx+6,sy);cx.fill()}}
@@ -399,6 +425,7 @@ function drawStage(t,dt){if(!G)return;const k=1-Math.pow(.0005,dt);
     if(big){cx.save();cx.translate(px,py);cx.scale(1.35,1.35);cx.translate(-px,-py)}blob(r,px,py,t,false,0,0,G.face[r]);if(big)cx.restore();
     if(lt){cx.save();cx.translate(px,py-22);for(let i=0;i<5;i++){cx.fillStyle=i%2?COL.her:'#fff3e6';cx.beginPath();cx.arc(-14+i*7,0,4,0,7);cx.fill()}cx.restore()}
     const left=r==='her'?G.big-performance.now():G.light-performance.now();if(left>0){cx.fillStyle='#a59c95';cx.font='500 11px Jost, sans-serif';cx.textAlign='center';cx.fillText(Math.ceil(left/1000)+'s',px,py+34);cx.textAlign='left'}});
+  for(let i=0;i<12;i++){const mx=(hh(i)*560+t*(.004+hh(i+3)*.006))%560-10,my=((hh(i+7)*800-t*(.006+hh(i+5)*.008))%800+800)%800;glow(mx,my,7,'rgba(230,194,122,.8)',.25+.2*Math.sin(t/500+i))}
   ['her','him'].forEach(r=>bubble(r,G.rp[r].x*T+T/2,G.rp[r].y*T+T/2,t))}
 
 /* ================= controls ================= */
@@ -624,76 +651,52 @@ function chaiTable(t){cx.fillStyle='#5a3418';cx.fillRect(262,520,16,50);cx.fillS
 function fireworks(t,n=4){for(let f=0;f<n;f++){const P=1900+f*230,ph=((t+f*700)%P)/P,cyc=Math.floor((t+f*700)/P);const x=80+hh(f*13+cyc)*380,y=130+hh(f*7+cyc)*170,r=30+ph*80*(.7+hh(f+cyc)*.5),a=1-ph;if(ph<.08)continue;
   const col=f%3===0?GOLD:f%3===1?'#efb8b1':'#fff1d6';glow(x,y,r*.8,col,a*.25);cx.save();cx.strokeStyle=col;cx.globalAlpha=a;cx.lineWidth=2;for(let i=0;i<18;i++){const an=i/18*Math.PI*2;cx.beginPath();cx.moveTo(x+Math.cos(an)*r*.6,y+Math.sin(an)*r*.6+ph*10);cx.lineTo(x+Math.cos(an)*r,y+Math.sin(an)*r+ph*18);cx.stroke()}cx.restore()}}
 function window2(x,y,w,h,r,t,lamp){cx.fillStyle='#120b16';cx.fillRect(x-6,y-6,w+12,h+12);const g=cx.createRadialGradient(x+w*.3,y+h*.4,10,x+w/2,y+h/2,w);g.addColorStop(0,lamp);g.addColorStop(1,'#2a1626');cx.fillStyle=g;cx.fillRect(x,y,w,h);cx.strokeStyle=GOLD;cx.lineWidth=2;cx.strokeRect(x,y,w,h);cx.beginPath();cx.moveTo(x+w/2,y);cx.lineTo(x+w/2,y+h*.42);cx.moveTo(x,y+h*.42);cx.lineTo(x+w,y+h*.42);cx.stroke()}
-const PEND=['the rings','the garden','qubool hai × 3','the knot, undone'];
-
 const STORY={
  prologue:[
   {d:4400,title:1,txt:'Chapter 1 · Qubool Hai',f:(t,k)=>{velvet(t);starsF(t,40,620);frame(Math.min(1,k*2));const s=150*(1+.025*Math.sin(t/280));heartG(270,250,s,1,t);
     cx.save();cx.globalAlpha=Math.min(1,k*2.5);caps('TWO HALVES',270,400);cx.textAlign='center';cx.fillStyle=PAPER2;cx.font='italic 500 60px "Cormorant Garamond", serif';cx.fillText('Qubool Hai',270,468);orn(270,496,70);caps('CHAPTER ONE',270,528,'#efb8b1',11);cx.restore()}},
-  {d:4300,txt:'Once, there was one heart, split into two halves.',f:(t,k)=>{night(t,['#07050a','#150c1c','#2a1428','#3a1a2c']);bokeh(t,['#efb8b1','#e6c27a'],12,.15);const e=ease(Math.min(1,k*1.3)),s=210;
-    cx.save();cx.translate(270-80*e,350);cx.rotate(-.16*e);halfG(0,-s/2,s,true,heartGrad(0,s,true));cx.restore();cx.save();cx.translate(270+80*e,350);cx.rotate(.16*e);halfG(0,-s/2,s,false,heartGrad(0,s,false));cx.restore();
-    if(k>.08&&k<.5&&Math.random()<.5)burst(270,330+Math.random()*80,GOLD,2,90)}},
-  {d:5400,txt:'One half grew up in Karachi. The other made a life in Riyadh.',f:(t,k)=>{
+  {d:4200,txt:'18 February. Two strangers, one “Salam”.',f:(t,k)=>{night(t,['#07050a','#150c1c','#2a1428','#3a1a2c']);bokeh(t,['#efb8b1','#e6c27a'],12,.15);const e=1-ease(Math.min(1,k*1.2)),s=210;
+    cx.save();cx.translate(270-90*e,350);cx.rotate(-.16*e);halfG(0,-s/2,s,true,heartGrad(0,s,true));cx.restore();cx.save();cx.translate(270+90*e,350);cx.rotate(.16*e);halfG(0,-s/2,s,false,heartGrad(0,s,false));cx.restore();
+    if(k>.75){glow(270,350,160,'rgba(230,194,122,.5)',(k-.75)*2)}}}],
+ magnet:[
+  {d:4600,txt:'23 March. Chai, two families, and a ring.',f:(t,k)=>{salon(t);chaiTable(t);who('her',115,590,t,1,0);who('him',425,590,t,-1,0);
+    if(k>.45){const a=Math.min(1,(k-.45)*4);cx.save();cx.globalAlpha=a;cx.translate(270,410);cx.scale(.55,.55);ringsArt(0,0,t,1);cx.restore();glow(270,410,60,'rgba(230,194,122,.6)',a*.5);
+      if(!scene['h'+scene.i]){scene['h'+scene.i]=1;burst(270,410,GOLD,16,120,true);sfx.good()}}}}],
+ seed:[
+  {d:5000,txt:'Then Riyadh and Karachi. 3,000 km, and every “good morning love”.',f:(t,k)=>{
     cx.save();cx.beginPath();cx.rect(0,0,270,780);cx.clip();bg(['#170d28','#4d2550','#c8746c','#f0c48d']);starsF(t,20,220);crescent(80,170,17);city(-10,280,470,'#2c1730',t,3);
     cx.fillStyle=vgrad(['#3c2452','#1a1028'],470,660);cx.fillRect(0,470,270,310);cx.strokeStyle='rgba(240,196,141,.5)';cx.lineWidth=1.5;for(let i=0;i<9;i++){const yy=482+i*15,o=(t/40+i*37)%80;cx.beginPath();cx.moveTo(30+o+i*5,yy);cx.lineTo(70+o+i*5,yy);cx.stroke()}
     palmS(36,610,.75,'#120a14');palmS(240,618,.55,'#120a14');ridge(640,6,.04,1,'#120a14',0,270);who('her',140,600,t,1,0);caps('KARACHI',135,120);cx.restore();
     cx.save();cx.beginPath();cx.rect(270,0,270,780);cx.clip();bg(['#120a22','#3e1d42','#bf6c5c','#ecbd86']);starsF(t,22,240);ridge(560,40,.012,1,'#8a4a3e',270,540);city(280,540,560,'#3a1e30',t,11);kingdom(440,560,250,'#1e1022');
     ridge(610,30,.018,2,'#5a2a32',270,540);ridge(650,18,.022,3,'#2a1420',270,540);who('him',400,600,t,-1,0);caps('RIYADH',405,120);cx.restore();
-    cx.strokeStyle=GOLD;cx.globalAlpha=.7;cx.lineWidth=1;cx.beginPath();cx.moveTo(270,70);cx.lineTo(270,640);cx.stroke();cx.globalAlpha=1;cx.save();cx.translate(270,340);cx.rotate(Math.PI/4);cx.fillStyle=GOLD;cx.fillRect(-5,-5,10,10);cx.restore()}},
-  {d:5800,txt:'Dil, the little keeper of hearts, had one job: bring the halves together. One step at a time.',f:(t,k)=>{night(t);crescent(440,150,16);ridge(570,34,.01,0,'#24132a');ridge(615,24,.016,2,'#170c1c');
-    const e=ease(Math.min(1,k*1.15)),P=q=>({x:140+260*q,y:560-Math.sin(q*Math.PI)*330});
-    cx.fillStyle=GOLD;for(let q=0;q<e;q+=.025){const p=P(q);cx.globalAlpha=.35+.65*(q/e);cx.beginPath();cx.arc(p.x,p.y,1.8,0,7);cx.fill()}cx.globalAlpha=1;
-    who('her',130,600,t,1,-1);who('him',410,600,t,-1,-1);const p=P(e);glow(p.x,p.y,70,'rgba(255,240,230,.5)',.5);dil(p.x,p.y,t,1);if(Math.random()<.35)burst(p.x,p.y,GOLD,1,50)}}],
- magnet:[
-  {d:5800,txt:'Step one: the rishta. Two families, a lot of chai, and one very nervous “haan”.',f:(t,k)=>{salon(t);chaiTable(t);who('her',115,590,t,1,0);who('him',425,590,t,-1,0);
-    if(k>.6){const a=Math.min(1,(k-.6)*6),sc=.6+.4*ease(Math.min(1,(k-.6)*5))+Math.sin(t/200)*.02;cx.save();cx.translate(270,440);cx.scale(sc,sc);cx.globalAlpha=a;cx.textAlign='center';cx.shadowColor='#efb8b1';cx.shadowBlur=18;cx.fillStyle='#f7d3cd';cx.font='italic 600 46px "Cormorant Garamond", serif';cx.fillText('haan 🙈',0,0);cx.restore();
-      if(!scene['h'+scene.i]){scene['h'+scene.i]=1;burst(140,560,COL.her,18,160,true);sfx.good()}}}},
-  {d:4800,txt:'“I’ll throw, you catch,” he said. “Like we always will.”',f:(t,k)=>{night(t,['#0b0716','#1e1230','#3e1f3e']);crescent(90,150,18);
-    cx.fillStyle=vgrad(['#2a1424','#140a12'],440,780);cx.beginPath();cx.moveTo(150,440);cx.lineTo(390,440);cx.lineTo(540,780);cx.lineTo(0,780);cx.closePath();cx.fill();cx.strokeStyle='rgba(230,194,122,.25)';cx.lineWidth=1;
-    for(let i=0;i<=6;i++){cx.beginPath();cx.moveTo(150+i*40,440);cx.lineTo(i*90,780);cx.stroke()}for(let j=0;j<5;j++){const y=440+j*j*14+j*20,w=(y-440)/340;cx.beginPath();cx.moveTo(150-150*w,y);cx.lineTo(390+150*w,y);cx.stroke()}
-    marigold(0,540,84,30,30);fairy(0,540,100,40,t,18);cx.fillStyle=GOLD;cx.beginPath();cx.ellipse(270,470,34,9,0,0,7);cx.fill();glow(270,470,50,'rgba(230,194,122,.6)',.4);
-    const C=1700,ph=(t%C)/C;let y,hop;if(ph<.2){y=590;hop=0}else if(ph<.7){const q=(ph-.2)/.5;y=590-120*q;hop=Math.sin(q*Math.PI)*170}else{y=470;hop=0}
-    if(ph>.2&&ph<.7)for(let i=1;i<5;i++){const q=Math.max(0,(ph-.2)/.5-i*.05);glow(270,590-120*q-Math.sin(q*Math.PI)*170,10,'rgba(239,184,177,.7)',.5-i*.1)}
-    who('him',270,650,t,0,-1);who('her',270,y-hop,t,0,-1,1.2)}}],
- seed:[
-  {d:5800,txt:'Step two: six months apart. Good mornings across 2,050 km, and chats that ended in “sleep now… no, you sleep”.',f:(t,k)=>{night(t);window2(40,400,190,200,'her',t,'#d98f88');window2(310,400,190,200,'him',t,'#e2c99a');
-    who('her',135,555,t,1,0,1.15);who('him',405,555,t,-1,0,1.15);glow(150,560,30,'rgba(200,220,255,.6)',.6);glow(390,560,30,'rgba(200,220,255,.6)',.6);
-    cx.strokeStyle=GOLD;cx.setLineDash([3,7]);cx.globalAlpha=.6;cx.beginPath();cx.moveTo(230,450);cx.quadraticCurveTo(270,330,310,450);cx.stroke();cx.setLineDash([]);cx.globalAlpha=1;
-    ['good morning love ☀️','good morning 🤍','sleep now','no, you sleep 😛','okay bye… 5 more mins'].forEach((s,i)=>bubbleArt(i%2?360:180,120+i*52,i%2?'him':'her',Math.max(0,Math.min(1,k*3-i*.35)),s))}},
-  {d:5000,txt:'His rain made her strong. Her flowers made him light. Love that grows, even long-distance.',f:(t,k)=>{bg(['#1c1230','#6a3354','#df977a','#f5d4a0']);glow(270,500,170,'rgba(255,214,160,.7)',.6);ridge(560,40,.01,1,'#4a2e40');ridge(600,26,.015,2,'#2e1d2a');cx.fillStyle='#1d131b';cx.fillRect(0,615,540,170);
-    for(let i=0;i<10;i++){const x=30+i*53,g=Math.max(0,Math.min(1,k*2.2-i*.1));if(!g)continue;cx.strokeStyle='#7fa678';cx.lineWidth=2;cx.beginPath();cx.moveTo(x,618);cx.quadraticCurveTo(x+4,618-20*g,x,618-40*g);cx.stroke();
-      cx.save();cx.translate(x,618-40*g);cx.rotate(t/2000+i);for(let j=0;j<5;j++){cx.rotate(Math.PI*2/5);cx.fillStyle=i%2?'#efb8b1':'#f3e3c3';cx.beginPath();cx.ellipse(0,-6*g,4*g,7*g,0,0,7);cx.fill()}cx.fillStyle=GOLD;cx.beginPath();cx.arc(0,0,3*g,0,7);cx.fill();cx.restore()}
-    const s=1.3*(1+.3*Math.min(1,k*2));cx.fillStyle='rgba(225,232,245,.85)';[[-26,4,20],[0,-6,26],[26,4,20]].forEach(([dx,dy,r])=>{cx.beginPath();cx.arc(170+dx,430+dy,r,0,7);cx.fill()});cx.fillStyle='rgba(200,215,240,.7)';for(let i=0;i<9;i++){cx.fillRect(146+i*6,452+((t/4+i*23)%60),1.5,8)}
-    who('her',170,600,t,1,0,s);const by=600-90*Math.abs(Math.sin(t/420));who('him',380,by,t,-1,0);for(let i=0;i<6;i++){cx.fillStyle=i%2?'#efb8b1':'#fff3e6';cx.beginPath();cx.arc(364+i*6.5,by-30,4.5,0,7);cx.fill()}}}],
+    cx.strokeStyle=GOLD;cx.globalAlpha=.7;cx.lineWidth=1;cx.beginPath();cx.moveTo(270,70);cx.lineTo(270,640);cx.stroke();cx.globalAlpha=1;
+    const m=['good morning love ☀️','🤍'];m.forEach((s,i)=>bubbleArt(i?380:160,300+i*56,i?'him':'her',Math.max(0,Math.min(1,k*3-.6-i*.6)),s))}}],
  carry:[
-  {d:5200,txt:'Step three: the nikah. The walk, the nerves, and the hands that found each other.',f:(t,k)=>{bg(['#1a0a14','#36122a','#4f1b2c']);
+  {d:4400,txt:'11 September, 3:37 AM.',f:(t,k)=>{night(t);window2(40,380,190,210,'her',t,'#d98f88');window2(310,380,190,210,'him',t,'#e2c99a');who('her',135,545,t,1,0,1.15);who('him',405,545,t,-1,0,1.15);
+    glow(150,550,30,'rgba(200,220,255,.6)',.6);glow(390,550,30,'rgba(200,220,255,.6)',.6);cx.save();cx.textAlign='center';cx.fillStyle=PAPER2;cx.globalAlpha=Math.min(1,k*3);cx.font='300 64px Jost, sans-serif';cx.fillText('3:37',270,220);cx.restore();caps('AM',270,250,GOLD,12);
+    bubbleArt(380,320,'him',Math.max(0,Math.min(1,k*3-1)),'I love you');if(k>.62)bubbleArt(160,340,'her',Math.min(1,(k-.62)*5),'🤍🤍🤍')}},
+  {d:4600,txt:'23 September. Qubool hai, three times.',f:(t,k)=>{bg(['#1a0a14','#36122a','#4f1b2c']);
     for(let i=0;i<14;i++){const x=24+i*38,len=6+Math.floor(hh(i)*6);for(let j=0;j<len;j++){const y=90+j*28;const c=j%2?'#ffd9a0':'#fff1d6';glow(x,y,9,c,(.5+.5*Math.sin(t/350+i+j))*.6);cx.fillStyle=c;cx.beginPath();cx.arc(x,y,1.6,0,7);cx.fill()}}
     for(let i=0;i<=40;i++){const a=Math.PI+i/40*Math.PI;cx.fillStyle=i%2?'#e8892b':'#f2b33d';cx.beginPath();cx.arc(270+Math.cos(a)*215,560+Math.sin(a)*330,8,0,7);cx.fill();cx.fillStyle='#fff6ea';cx.beginPath();cx.arc(270+Math.cos(a)*198,560+Math.sin(a)*312,3.5,0,7);cx.fill()}
     [-150,-90,-30,30,90,150].forEach((dx,i)=>strand(270+dx,560-Math.sqrt(Math.max(0,1-(dx/215)**2))*330+10,6+(i%2),t,i));
     cx.fillStyle='#2a0e1a';cx.fillRect(40,600,460,180);cx.fillStyle=GOLD;cx.fillRect(40,600,460,2);cx.fillStyle='#7a1e36';cx.beginPath();cx.roundRect(170,505,200,70,[30,30,6,6]);cx.fill();cx.strokeStyle=GOLD;cx.lineWidth=2;cx.stroke();
     for(let i=0;i<22;i++){cx.fillStyle=i%3?'#c7405e':'#efb8b1';cx.beginPath();cx.ellipse(hh(i+3)*500+20,630+hh(i+9)*120,4,2.5,hh(i)*3,0,7);cx.fill()}
-    const e=ease(k);who('her',130+100*e,590,t,1,0);who('him',410-100*e,590,t,-1,0);if(k>.85)glow(270,580,60,'rgba(230,194,122,.7)',.5)}},
-  {d:4800,txt:'“Wherever you go,” she said, “I’ll always find my way to you.”',f:(t,k)=>{night(t);ridge(590,20,.012,1,'#1e1024');cx.fillStyle='#120a14';cx.fillRect(0,620,540,160);
-    for(let i=0;i<8;i++){const x=30+i*70;cx.fillStyle='#3a2230';cx.fillRect(x-1.5,560,3,60);cx.fillStyle='#e8892b';cx.fillRect(x-6,548,12,14);glow(x,555,40,'rgba(255,180,90,.8)',.55+.15*Math.sin(t/200+i))}
-    const x=120+300*((t/3200)%1);who('him',x,610,t,1,0);if(k>.4){who('her',x-52,610,t,1,0);if(k<.5&&Math.random()<.5)burst(x-52,600,GOLD,3,100,true)}}}],
+    const e=ease(Math.min(1,k*1.4));who('her',130+100*e,590,t,1,0);who('him',410-100*e,590,t,-1,0);
+    for(let i=0;i<3;i++){const a=Math.min(1,Math.max(0,(k-.35-i*.17)*6));if(a>0){cx.save();cx.globalAlpha=a;cx.textAlign='center';cx.fillStyle=PAPER2;cx.font='italic 500 30px "Cormorant Garamond", serif';cx.fillText('qubool hai',270,345+i*40);cx.restore()}}}}],
  boss:[
-  {d:5400,txt:'Before the wedding, one last thing tried to tie them up. Every “what if”. Every “will it be perfect?”',f:(t,k)=>{bg(['#06040a','#140b1c','#22122a']);for(let i=0;i<6;i++)glow(80+i*80+Math.sin(t/1500+i)*30,200+Math.cos(t/1800+i)*40,140,'rgba(70,40,90,.5)',.35);
-    if((t%3400)<80){cx.fillStyle='rgba(255,240,255,.12)';cx.fillRect(0,0,540,780)}cx.save();cx.translate(270,290);cx.scale(1.3,1.3);knotArt(0,0,t,k);cx.restore();ridge(620,14,.02,1,'#0c0710');who('her',210,610,t,0,-1,1.1);who('him',330,610,t,0,-1,1.1)}},
-  {d:4800,txt:'The Knot. It can only come undone with two hands, pulling together.',f:(t,k)=>{bg(['#06040a','#140b1c','#22122a']);for(let i=0;i<6;i++)glow(80+i*80,200+Math.cos(t/1800+i)*40,140,'rgba(70,40,90,.5)',.35);
-    rope(250,320,150,575,COL.her,7,t,20);rope(290,320,390,575,COL.him,7,t+700,20);cx.save();cx.translate(270,290);cx.scale(1.3,1.3);knotArt(0,0,t,1);cx.restore();ridge(620,14,.02,1,'#0c0710');who('her',150,610,t,0,-1,1.1);who('him',390,610,t,0,-1,1.1)}}],
+  {d:5200,txt:'Every “enjoy” that really meant “I miss you”. One last knot.',f:(t,k)=>{bg(['#06040a','#140b1c','#22122a']);for(let i=0;i<6;i++)glow(80+i*80+Math.sin(t/1500+i)*30,200+Math.cos(t/1800+i)*40,140,'rgba(70,40,90,.5)',.35);
+    if(k>.5){rope(250,320,150,575,COL.her,7,t,20);rope(290,320,390,575,COL.him,7,t+700,20)}cx.save();cx.translate(270,290);cx.scale(1.3,1.3);knotArt(0,0,t,k);cx.restore();ridge(620,14,.02,1,'#0c0710');
+    const sp=k>.5?1:0;who('her',210-60*sp,610,t,0,-1,1.1);who('him',330+60*sp,610,t,0,-1,1.1)}}],
  end:[
-  {d:4800,txt:'Four pieces. One heart, almost whole.',f:(t,k)=>{velvet(t);frame(1);heartG(270,300,240,.93,t);who('her',200,600,t,1,-1);who('him',340,600,t,-1,-1)}},
-  {d:4800,txt:'Because the last piece was never a memory. It was a day they were still waiting for.',f:(t,k)=>{night(t,['#07050a','#1a0d1e','#3a1a2c','#5a2636']);const e=ease(Math.min(1,k*1.3)),s=230;glow(270,330,220*e,'rgba(230,194,122,.5)',.5*e);
-    halfG(270-46*(1-e),330-s/2,s,true,heartGrad(270,s,true));halfG(270+46*(1-e),330-s/2,s,false,heartGrad(270,s,false))}},
-  {d:5200,txt:'The wedding. 2nd and 4th of April.',f:(t,k)=>{night(t,['#07050a','#160b1e','#331530']);fireworks(t);marigold(0,540,84,30,30);fairy(0,540,100,40,t,18);ringsArt(270,330,t,k);
-    caps('2  &  4  APRIL',270,450,GOLD,13);who('her',225,600,t,1,-1);who('him',315,600,t,-1,-1)}},
+  {d:4400,txt:'Four pieces. One day still to come.',f:(t,k)=>{velvet(t);frame(1);heartG(270,300,240,.93,t);who('her',200,600,t,1,-1);who('him',340,600,t,-1,-1)}},
+  {d:4200,txt:'2 & 4 April.',f:(t,k)=>{night(t,['#07050a','#160b1e','#331530']);fireworks(t);marigold(0,540,84,30,30);fairy(0,540,100,40,t,18);ringsArt(270,330,t,k);who('her',225,600,t,1,-1);who('him',315,600,t,-1,-1)}},
   {d:4600,title:1,txt:'Chapter 2 · Shaadi. Coming soon.',f:(t,k)=>{velvet(t);frame(Math.min(1,k*2));fireworks(t,2);cx.save();cx.globalAlpha=Math.min(1,k*2.5);caps('CHAPTER ONE COMPLETE',270,330);cx.textAlign='center';cx.fillStyle=PAPER2;cx.font='italic 500 62px "Cormorant Garamond", serif';cx.fillText('Shaadi',270,405);orn(270,432,70);caps('CHAPTER TWO · 2 & 4 APRIL',270,466,'#efb8b1',11);cx.restore()}}]
 };
-const OUTRO=['The families said yes, and the rings found their fingers. First piece:','The distance grew a garden. Second piece:','Qubool hai. Qubool hai. Qubool hai. Third piece:','The Knot came undone. Fourth piece:'];
-for(let n=0;n<PIECES;n++)STORY['out'+n]=[{d:6200,txt:OUTRO[n]+' '+MEM[n]+'.',f:(t,k)=>{velvet(t);frame(1);const lv=(n+(k<.55?0:ease(Math.min(1,(k-.55)*2.5))))/PIECES;heartG(270,290,230,lv,t);
+const OUTRO=['First piece','Second piece','Third piece','Fourth piece'];
+for(let n=0;n<PIECES;n++)STORY['out'+n]=[{d:4600,txt:OUTRO[n]+' · '+MEM[n],f:(t,k)=>{velvet(t);frame(1);const lv=(n+(k<.5?0:ease(Math.min(1,(k-.5)*2.5))))/PIECES;heartG(270,290,230,lv,t);
   for(let i=1;i<PIECES;i++){const y=290+115-230*1.02*i/PIECES;cx.strokeStyle='rgba(230,194,122,.18)';cx.setLineDash([2,5]);cx.beginPath();cx.moveTo(190,y);cx.lineTo(350,y);cx.stroke();cx.setLineDash([])}
-  if(k<.55){const q=ease(k/.55);const x=90+180*q,y=110+260*q;glow(x,y,40,n%2?'rgba(243,227,195,.8)':'rgba(239,184,177,.8)',.7);shard(x,y,n,1.6-q*.5)}else if(!scene['s'+scene.i]){scene['s'+scene.i]=1;burst(270,330,GOLD,26,200,true);sfx.good()}
-  caps(PEND[n].toUpperCase(),270,470,GOLD,12);const hop=k>.6?Math.abs(Math.sin(t/200))*10:0;who('her',200,600-hop,t,1,-1);who('him',340,600-(k>.6?Math.abs(Math.sin(t/200+1))*10:0),t,-1,-1)}}];
+  if(k<.5){const q=ease(k/.5);const x=90+180*q,y=110+260*q;glow(x,y,40,n%2?'rgba(243,227,195,.8)':'rgba(239,184,177,.8)',.7);shard(x,y,n,1.6-q*.5)}else if(!scene['s'+scene.i]){scene['s'+scene.i]=1;burst(270,330,GOLD,26,200,true);sfx.good()}
+  const hop=k>.55?Math.abs(Math.sin(t/200))*10:0;who('her',200,600-hop,t,1,-1);who('him',340,600-(k>.55?Math.abs(Math.sin(t/200+1))*10:0),t,-1,-1)}}];
 
 function playScene(id){return new Promise(res=>{const shots=STORY[id];if(!shots){res();return}scene={shots,i:0,t0:performance.now(),res};$('skip').hidden=false})}
 function endScene(){if(!scene)return;const r=scene.res;scene=null;$('skip').hidden=true;r()}
@@ -826,6 +829,9 @@ $('asHer').onclick=()=>hostAs('her');$('asHim').onclick=()=>hostAs('him');
 $('bJoin').onclick=()=>{$('jStatus').textContent='';show('join');setTimeout(()=>$('codeIn').focus(),50)};
 $('bGo').onclick=joinRoom;$('codeIn').addEventListener('keydown',e=>{if(e.key==='Enter')joinRoom()});
 $('bLocal').onclick=()=>{mode='local';isHost=true;show('game');$('who').textContent='One phone';$('net').textContent='';buildQuick();goStep(0)};
+
+/* magic touch: a little gold spark wherever you touch */
+document.addEventListener('pointerdown',e=>{if(e.target.closest&&e.target.closest('input,.sheet'))return;const s=document.createElement('i');s.className='spark';s.textContent=Math.random()<.3?'♥':'✦';s.style.left=e.clientX+'px';s.style.top=e.clientY+'px';document.body.appendChild(s);setTimeout(()=>s.remove(),750)},{passive:true});
 
 </script>
 </body>
