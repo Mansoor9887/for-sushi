@@ -227,19 +227,19 @@ function bubble(r,px,py,t){const b=bubbles[r];if(!b)return;const age=(t-b.t)/100
 const PIECES=3;
 const MEM=['a shy first hello that changed everything','23.03, the day two families said yes','23.09, the day they said qubool hai'];
 const STAGES={
- magnet:{name:'Magnet & Spark',powers:{her:'pull',him:'push'},sub:'Her power PULLS. His power PUSHES. Face something with the arrows, then tap your power. Crates fill holes. People fly over them.',
+ magnet:{name:'Magnet & Spark',powers:{her:'pull',him:'push'},sub:'Three crates, three jobs. He PUSHES the first into the hole. She PULLS the second into the next one. He pushes the third onto the gate switch. Then he launches her over the last pit, and she pulls him to her.',
   map:['#########',
        '#A.....B#',
-       '#ooo.ooo#',
-       '#.......#',
-       '#.......#',
        '#.......#',
        '#ooooooo#',
        '#.......#',
-       '#.......#',
+       '####p####',
+       '#.X....P#',
+       '#....X..#',
        '#ooooooo#',
-       '#..X....#',
-       '#a....b.#',
+       '#...o...#',
+       '#..Xo...#',
+       '#ba.o...#',
        '#########']},
  seed:{name:'Seed & Rain',powers:{her:'plant',him:'rain'},sub:'She plants seeds. He rains on them. Soil by a hole grows a vine bridge. Round soil grows a flower that bounces her high. His rain reaches two tiles. He’s too heavy for it 😛',
   map:['#########',
@@ -304,8 +304,9 @@ function gmove(r,dx,dy){if(!G||!G.playing)return;if(mode==='net'&&r!==me)return;
 function launch(r){const p=G.pos[r];const ty=p.y-3;if(ty>0&&!blocked(p.x,ty)&&gt(p.x,ty)!=='o'&&!crateAt(p.x,ty)&&!playerAt(p.x,ty)){sfx.boing();buzz(40);burst(p.x*T+T/2,p.y*T+T/2,COL.her,16,160,true);p.y=ty;mv[r]={t:performance.now(),dx:0,dy:-3,jump:1}}}
 function power(r){if(!G||!G.playing)return;if(mode==='net'&&r!==me)return;const pw=G.def.powers[r],f=G.face[r],p=G.pos[r];
   if(pw==='push'||pw==='pull'){let tgt=null;for(let i=1;i<=6;i++){const x=p.x+f.x*i,y=p.y+f.y*i;if(blocked(x,y))break;const cr=crateAt(x,y),pl=playerAt(x,y);if(cr){tgt={kind:'crate',o:cr};break}if(pl){tgt={kind:'player',r:pl};break}}
+    if(!tgt&&pw==='pull'){const o=other(r),q=G.pos[o];if(q.x===p.x||q.y===p.y){const d={x:Math.sign(q.x-p.x),y:Math.sign(q.y-p.y)};let clear=true;for(let x=p.x+d.x,y=p.y+d.y;!(x===q.x&&y===q.y);x+=d.x,y+=d.y){if(blocked(x,y)||crateAt(x,y)){clear=false;break}}if(clear){f.x=d.x;f.y=d.y;G.face[r]={...d};tgt={kind:'player',r:o}}}}
     G.fx.push({k:pw,x:p.x,y:p.y,f:{...f},t:performance.now()});
-    if(!tgt){pw==='push'?sfx.push():sfx.pull();tip('Nothing in line. <b>Face a crate or your other half</b> first.');sync();return}
+    if(!tgt){pw==='push'?sfx.push():sfx.pull();tip(pw==='pull'?'Nothing to pull. <b>Face a crate</b>, or line up with him to pull him to you.':'Nothing in line. <b>Face a crate or her</b> first.');sync();return}
     pw==='push'?sfx.push():sfx.pull();buzz(30);slide(tgt,pw==='push'?f:{x:-f.x,y:-f.y},pw==='pull'?r:null);sync();checkStageWin();return}
   let tx=p.x+f.x,ty=p.y+f.y;if(pw==='rain'&&!['v','f'].includes(gt(tx,ty))&&['v','f'].includes(gt(tx+f.x,ty+f.y))){tx+=f.x;ty+=f.y}
   const c=gt(tx,ty),key=tx+','+ty;
