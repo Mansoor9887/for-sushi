@@ -81,7 +81,7 @@ canvas{width:100%;height:100%;display:block}
 <div class="wrap">
   <section class="screen" id="home">
     <h1>Two Halves</h1>
-    <p class="sub">Chapter 1 · Inside Our Phone. Powers you use on each other, a boss, and mini-games. Use the chat to work together.</p>
+    <p class="sub">Chapter 1 · Coming Home. Powers you use on each other, a boss, and quick mini-games. Use the chat to work together.</p>
     <button class="btn" id="bCreate">Create a room</button>
     <button class="btn ghost" id="bJoin">Join a room</button>
     <button class="btn ghost" id="bLocal">Play on one phone</button>
@@ -225,9 +225,9 @@ function bubble(r,px,py,t){const b=bubbles[r];if(!b)return;const age=(t-b.t)/100
 
 /* ================= the chapter ================= */
 const PIECES=3;
-const MEM=['“good morning, jaan ☀️”','“call me when you’re free 📞”','“I miss you. Come here 🤍”'];
+const MEM=['“don’t forget my chai cup 🫖”','“chai here, every evening. promise 🤍”','“boarding now. see you soon, jaan ✈️”'];
 const STAGES={
- magnet:{name:'Push & Pull',powers:{her:'pull',him:'push'},sub:'His PUSH launches her through the air. Her PULL yanks him to her, even across gaps. You only get through by throwing each other forward.',
+ magnet:{name:'Moving Day',powers:{her:'pull',him:'push'},sub:'Karachi, packing day. His PUSH launches her across the gaps. Her PULL yanks him over to her. Throw each other forward, and get her out the door.',
   map:['#########',
        '#A.....B#',
        '#.......#',
@@ -241,7 +241,7 @@ const STAGES={
        '#.......#',
        '#a.b....#',
        '#########']},
- seed:{name:'Rain & Bloom',powers:{her:'plant',him:'rain'},sub:'Her PLANT grows soil into flowers, or puts a flower crown on him so he’s light enough to bounce. His RAIN waters soil, or rains on her so she grows big and heavy for 8 seconds.',
+ seed:{name:'Our Balcony',powers:{her:'plant',him:'rain'},sub:'Riyadh, the empty balcony. Her PLANT grows flowers, or crowns him so he’s light enough to bounce. His RAIN waters soil, or rains on her so she grows big and heavy for 8 seconds.',
   map:['#########',
        '#A.....B#',
        '#.......#',
@@ -262,6 +262,7 @@ const STEPS=[
  {k:'scene',id:'seed'},{k:'stage',id:'seed'},{k:'scene',id:'out1'},
  {k:'mini',id:'hockey'},
  {k:'scene',id:'boss'},{k:'boss'},{k:'scene',id:'out2'},
+ {k:'mini',id:'rush'},
  {k:'scene',id:'end'},{k:'final'}];
 const MILESTONES=STEPS.map((s,i)=>i).filter(i=>['stage','mini','boss'].includes(STEPS[i].k));
 function dots(){const d=$('dots');if(d.children.length!==MILESTONES.length)d.innerHTML=MILESTONES.map(()=>'<i></i>').join('');[...d.children].forEach((e,j)=>e.classList.toggle('on',MILESTONES[j]<stepIdx))}
@@ -274,7 +275,7 @@ async function runStep(i){const tok=++runTok;stepIdx=i;dots();const s=STEPS[i];h
   if(s.k==='mini'){startMini(s.id,tok);return}
   if(s.k==='boss'){startBoss(tok);return}
   if(s.k==='final'){view='final';finT0=performance.now();sfx.win();
-    overlay('Chapter 1 complete','Two halves.\nOne heart.',`Mini-games: Her ${score.her} · Him ${score.him} 😛\nChapter 2, coming soon.`,0,'Play again',()=>{if(isHost)goStep(0);else send({t:'again'})})}
+    overlay('Chapter 1 complete','Coming home.',`Mini-games: Her ${score.her} · Him ${score.him} 😛\nChapter 2 · The List, coming soon.`,0,'Play again',()=>{if(isHost)goStep(0);else send({t:'again'})})}
 }
 function goStep(n){if(!isHost)return;send({t:'step',i:n});runStep(n)}
 let finT0=0;
@@ -402,29 +403,43 @@ document.addEventListener('keyup',e=>{delete keysDown[e.key]});
 let M=null;
 function startMini(id,tok){view='mini';M={id,tok,phase:'count',t0:performance.now(),v:0,round:1,wins:{her:0,him:0},res:null,
   pk:{x:270,y:390,vx:0,vy:0},pads:{her:{x:270,y:640,px:270,py:640},him:{x:270,y:140,px:270,py:140}},sc:{her:0,him:0},ptr:{}};
-  const name=id==='tug'?'The Last Word':'Emoji Hockey';
-  const sub=id==='tug'?'Tug of war, best of three. Tap as fast as you can to drag the heart to your side. Whoever wins gets the last word 😛':'Drag your paddle and smash the heart into their goal. First to 5 wins. Her goal is at the bottom, his at the top.';
+  const name={tug:'The Last Croissant',hockey:'Emoji Hockey',rush:'Biscuit Rush'}[id];
+  const sub={tug:'One croissant. Two hungry people. Tap like crazy to drag it to your side. Watch for FRENZY: taps count double!',hockey:'Drag your paddle and smash the heart into their goal. First to 3 wins.',rush:'15 seconds. Drag to catch the falling snacks. 🍪 +1, 🥐 +3, 🌶️ −2. Steal the good ones from each other!'}[id];
   overlay('Mini-game',name,sub,3200);
   const c=$('controls');
   if(id==='tug'){c.innerHTML='<div class="big">'+(mode==='local'?'<button data-r="her">TAP!<br><small>HER</small></button><button class="him" data-r="him">TAP!<br><small>HIM</small></button>':`<button class="${me}" data-r="${me}">TAP!</button>`)+'</div>';
     c.querySelectorAll('button').forEach(b=>{b.addEventListener('pointerdown',e=>{e.preventDefault();b.classList.add('down');miniPress(b.dataset.r)});['pointerup','pointerleave','pointercancel'].forEach(n=>b.addEventListener(n,()=>b.classList.remove('down')))});
-    tip('Best of three. Round 1.')}
+    tip('First to drag the croissant home wins. Quick!')}
+  else if(id==='rush'){c.innerHTML='';M.rush={items:[],px:{her:200,him:340},pts:{her:0,him:0},left:15,spawn:0};tip(mode==='local'?'<b>Her:</b> drag on the left half. <b>Him:</b> drag on the right half.':'<b>Drag left and right</b> on the board to catch.')}
   else{c.innerHTML='';tip(mode==='local'?'<b>Two fingers:</b> her on the bottom half, him on the top half.':`<b>Drag on the board</b> to move your paddle. You’re ${me==='her'?'at the bottom':'at the top'}.`)}
   setTimeout(()=>{if(M&&M.tok===tok)countIn()},3200)}
 function countIn(){M.phase='count';M.t0=performance.now()-3200;setTimeout(()=>{if(M&&M.phase==='count'){M.phase='go';sfx.good()}},3000)}
-function miniPress(r){if(!M||M.phase!=='go'||M.id!=='tug')return;if(mode==='net'&&r!==me)return;tone(r==='her'?600:480,.05,'triangle',.05);if(isHost)tug(r);else send({t:'tug',r})}
+function miniPress(r){if(!M||M.phase!=='go'||M.id!=='tug')return;if(mode==='net'&&r!==me)return;tone(r==='her'?600:480,.05,'triangle',.05);buzz(6);if(isHost)tug(r);else send({t:'tug',r})}
 function miniRelease(){}
-function tug(r){if(M.phase!=='go')return;M.v+=r==='her'?-1:1;send({t:'tugv',v:M.v});if(Math.abs(M.v)>=24)roundWin(M.v<0?'her':'him')}
+function tug(r){if(M.phase!=='go')return;const n=performance.now()<(M.frenzy||0)?2:1;M.v+=(r==='her'?-1:1)*n;send({t:'tugv',v:M.v,fz:Math.max(0,(M.frenzy||0)-performance.now())});if(Math.abs(M.v)>=18)miniWin(M.v<0?'her':'him')}
+function tugEvents(dt){if(!isHost||M.phase!=='go')return;M.ev=(M.ev==null?2.2:M.ev)-dt;if(M.ev<=0){M.ev=2.5+Math.random()*1.5;if(Math.random()<.6){M.frenzy=performance.now()+1800;sfx.good();shake=6;send({t:'tugv',v:M.v,fz:1800})}else{M.v+=Math.random()<.5?-4:4;sfx.boing();shake=10;send({t:'tugv',v:M.v,slip:1})}}}
 function roundWin(w){M.wins[w]++;M.phase='between';sfx.good();burst(w==='her'?80:460,420,COL[w],24,200,true);send({t:'tugr',wins:M.wins,w});
   const done=M.wins[w]>=2;tip(`<b>${w==='her'?'She':'He'} takes round ${M.round}.</b> Her ${M.wins.her} · Him ${M.wins.him}`);
   if(done){setTimeout(()=>miniWin(w),900)}else setTimeout(()=>{M.round++;M.v=0;send({t:'tugv',v:0});send({t:'tugn',round:M.round});tip(`Round ${M.round}.`);countIn()},1800)}
 function miniWin(w){if(M.res)return;M.res=w;M.phase='end';if(w!=='tie')score[w]++;send({t:'mres',w,score});sfx.win();miniEnd()}
-function miniEnd(){const w=M.res;tip(`<b>${w==='her'?'She':'He'} wins ${M.id==='tug'?'the last word':'the match'}!</b> Mini-games: Her ${score.her} · Him ${score.him}`);
+function miniEnd(){const w=M.res;tip(w==='tie'?`<b>A tie!</b> Mini-games: Her ${score.her} · Him ${score.him}`:`<b>${w==='her'?'She':'He'} wins ${M.id==='tug'?'the croissant 🥐':'!'}</b> Mini-games: Her ${score.her} · Him ${score.him}`);
   for(let i=0;i<4;i++)setTimeout(()=>burst(270,360,w==='him'?COL.him:COL.her,30,260,true),i*200);const i=stepIdx;if(isHost)setTimeout(()=>{if(stepIdx===i)goStep(i+1)},3600)}
+/* biscuit rush */
+function rushPtr(e,down){const p=cpt(e);if(down)M.ptr[e.pointerId]=mode==='local'?(p.x<270?'her':'him'):me;const r=M.ptr[e.pointerId];if(!r)return;let x=p.x;if(mode==='local')x=r==='her'?p.x*2:(p.x-270)*2;x=Math.max(30,Math.min(510,x));M.rush.px[r]=x;if(!isHost)send({t:'rx',r,x})}
+function rushStep(dt){const R=M.rush;if(M.phase!=='go'||!isHost)return;R.left-=dt;R.spawn-=dt;
+  if(R.spawn<=0){R.spawn=.28+Math.random()*.2;const u=Math.random();R.items.push({x:30+Math.random()*480,y:-20,vy:240+Math.random()*220,k:u<.62?'🍪':u<.8?'🥐':'🌶️'})}
+  R.items.forEach(it=>{it.y+=it.vy*dt;if(it.y>660&&it.y<720&&!it.got){const d={her:Math.abs(R.px.her-it.x),him:Math.abs(R.px.him-it.x)};const w=d.her<d.him?'her':'him';if(d[w]<44){it.got=w;const v=it.k==='🍪'?1:it.k==='🥐'?3:-2;R.pts[w]+=v;sfx[v>0?'good':'bad']();send({t:'rsfx',w,v,x:it.x})}}});
+  R.items=R.items.filter(it=>!it.got&&it.y<800);
+  if(R.left<=0){R.left=0;const w=R.pts.her===R.pts.him?'tie':(R.pts.her>R.pts.him?'her':'him');miniWin(w)}
+  M.sendT=(M.sendT||0)-dt;if(M.sendT<=0&&mode==='net'){M.sendT=1/20;send({t:'rs',items:R.items,px:R.px,pts:R.pts,left:R.left})}}
+function drawRush(t,dt){rushStep(dt);const R=M.rush;cx.fillStyle='#161212';cx.fillRect(0,700,540,80);
+  R.items.forEach(it=>{cx.font='38px serif';cx.textAlign='center';cx.fillText(it.k,it.x,it.y)});
+  ['her','him'].forEach(r=>{const x=R.px[r];cx.fillStyle=COL2[r];cx.beginPath();cx.ellipse(x,700,44,12,0,0,7);cx.fill();blob(r,x,668,t,true,0,-1)});
+  cx.textAlign='center';cx.font='italic 500 42px "Cormorant Garamond", serif';cx.fillStyle=COL.her;cx.fillText(R.pts.her,120,80);cx.fillStyle=COL.him;cx.fillText(R.pts.him,420,80);cx.fillStyle='#f1e9e0';cx.font='500 14px Jost, sans-serif';cx.fillText(Math.ceil(R.left)+'s',270,70);cx.textAlign='left'}
 /* hockey */
 function cpt(e){const r=cv.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*540,y:(e.clientY-r.top)/r.height*780}}
-function hkDown(e){if(!M||M.id!=='hockey')return;const p=cpt(e);const r=mode==='local'?(p.y>390?'her':'him'):me;M.ptr[e.pointerId]=r;hkMove(e)}
-function hkMove(e){if(!M||M.id!=='hockey')return;const r=M.ptr[e.pointerId];if(!r)return;const p=cpt(e);const pd=M.pads[r];pd.x=Math.max(40,Math.min(500,p.x));pd.y=r==='her'?Math.max(430,Math.min(740,p.y)):Math.max(40,Math.min(350,p.y));if(!isHost)send({t:'pad',r,x:pd.x,y:pd.y})}
+function hkDown(e){if(M&&M.id==='rush'){rushPtr(e,1);return}if(!M||M.id!=='hockey')return;const p=cpt(e);const r=mode==='local'?(p.y>390?'her':'him'):me;M.ptr[e.pointerId]=r;hkMove(e)}
+function hkMove(e){if(M&&M.id==='rush'){rushPtr(e,0);return}if(!M||M.id!=='hockey')return;const r=M.ptr[e.pointerId];if(!r)return;const p=cpt(e);const pd=M.pads[r];pd.x=Math.max(40,Math.min(500,p.x));pd.y=r==='her'?Math.max(430,Math.min(740,p.y)):Math.max(40,Math.min(350,p.y));if(!isHost)send({t:'pad',r,x:pd.x,y:pd.y})}
 function hkUp(e){if(M)delete M.ptr[e.pointerId]}
 $('bw').addEventListener('pointerdown',hkDown);$('bw').addEventListener('pointermove',hkMove);['pointerup','pointercancel'].forEach(n=>$('bw').addEventListener(n,hkUp));
 function hkStep(dt){const m=M,p=m.pk;if(m.phase!=='go'||!isHost)return;
@@ -439,27 +454,28 @@ function hkStep(dt){const m=M,p=m.pk;if(m.phase!=='go'||!isHost)return;
   p.vx*=Math.pow(.6,dt);p.vy*=Math.pow(.6,dt);
   m.sendT=(m.sendT||0)-dt;if(m.sendT<=0&&mode==='net'){m.sendT=1/24;send({t:'hk',pk:p,pads:{her:{x:m.pads.her.x,y:m.pads.her.y},him:{x:m.pads.him.x,y:m.pads.him.y}},sc:m.sc})}}
 function goal(scorer){const m=M;m.sc[scorer]++;sfx.win();shake=10;burst(270,scorer==='her'?40:740,COL[scorer],30,260,true);m.pk={x:270,y:390,vx:0,vy:(scorer==='her'?-1:1)*60};send({t:'hk',pk:m.pk,pads:m.pads,sc:m.sc,goal:scorer});
-  tip(`<b>${scorer==='her'?'She':'He'} scores!</b> Her ${m.sc.her} · Him ${m.sc.him}`);if(m.sc[scorer]>=5)miniWin(scorer)}
+  tip(`<b>${scorer==='her'?'She':'He'} scores!</b> Her ${m.sc.her} · Him ${m.sc.him}`);if(m.sc[scorer]>=3)miniWin(scorer)}
 function drawMini(t,dt){if(!M)return;cx.fillStyle='#120f0f';cx.fillRect(0,0,540,780);const m=M;
   const cd=m.phase==='count'?Math.max(0,3-Math.floor((t-m.t0-3200)/1000)):0;
-  if(m.id==='tug'){const x=270+m.v*9;cx.fillStyle='#1d1817';cx.fillRect(0,470,540,310);cx.strokeStyle='#8a7560';cx.lineWidth=7;cx.beginPath();cx.moveTo(60,420);cx.quadraticCurveTo(270,430+Math.sin(t/80)*3,480,420);cx.stroke();
+  if(m.id==='tug'){tugEvents(dt);const fz=performance.now()<(m.frenzy||0);const x=270+m.v*12;if(fz){cx.fillStyle=`rgba(239,184,177,${.08+.06*Math.sin(t/60)})`;cx.fillRect(0,0,540,780);cx.fillStyle='#ff8f86';cx.font='italic 600 54px "Cormorant Garamond", serif';cx.textAlign='center';cx.fillText('FRENZY ×2',270,260+Math.sin(t/50)*4);cx.textAlign='left'}cx.fillStyle='#1d1817';cx.fillRect(0,470,540,310);cx.strokeStyle='#8a7560';cx.lineWidth=7;cx.beginPath();cx.moveTo(60,420);cx.quadraticCurveTo(270,430+Math.sin(t/80)*3,480,420);cx.stroke();
     cx.strokeStyle='#5a504b';cx.lineWidth=2;cx.setLineDash([6,8]);cx.beginPath();cx.moveTo(54,300);cx.lineTo(54,520);cx.moveTo(486,300);cx.lineTo(486,520);cx.stroke();cx.setLineDash([]);
-    cx.fillStyle=COL.her;heartPath(x,395,40);cx.fill();blob('her',40+Math.min(0,m.v)*1.5,440,t,true,1,0);blob('him',500+Math.max(0,m.v)*1.5,440,t,true,-1,0);
-    cx.textAlign='center';cx.font='500 13px Jost, sans-serif';cx.fillStyle='#a59c95';cx.fillText('ROUND '+m.round+' · BEST OF 3',270,120);cx.font='italic 500 40px "Cormorant Garamond", serif';cx.fillStyle='#f1e9e0';cx.fillText(m.wins.her+'  –  '+m.wins.him,270,170);cx.textAlign='left'}
+    cx.save();cx.translate(x,415+Math.sin(t/60)*2);cx.rotate(Math.sin(t/120)*.15);cx.font='64px serif';cx.textAlign='center';cx.fillText('🥐',0,20);cx.restore();blob('her',40+Math.min(0,m.v)*1.5,440,t,true,1,0);blob('him',500+Math.max(0,m.v)*1.5,440,t,true,-1,0);
+    cx.textAlign='center';cx.font='500 13px Jost, sans-serif';cx.fillStyle='#a59c95';cx.fillText('HER SIDE',60,560);cx.fillText('HIS SIDE',480,560);cx.textAlign='left'}
   if(m.id==='hockey'){hkStep(dt);const p=m.pk;
     cx.strokeStyle='#2b2624';cx.lineWidth=3;cx.strokeRect(14,14,512,752);cx.beginPath();cx.moveTo(14,390);cx.lineTo(526,390);cx.stroke();cx.beginPath();cx.arc(270,390,60,0,7);cx.stroke();
     cx.fillStyle=COL.him;cx.fillRect(170,8,200,8);cx.fillStyle=COL.her;cx.fillRect(170,764,200,8);
     ['her','him'].forEach(r=>{const d=m.pads[r];cx.save();cx.shadowColor=COL[r];cx.shadowBlur=18;cx.fillStyle=COL2[r];cx.beginPath();cx.arc(d.x,d.y,34,0,7);cx.fill();cx.fillStyle=COL[r];cx.beginPath();cx.arc(d.x,d.y,22,0,7);cx.fill();cx.restore()});
     cx.save();cx.translate(p.x,p.y);cx.rotate(t/200);cx.shadowColor='#fff';cx.shadowBlur=14;cx.fillStyle='#ff8f86';heartPath(0,-20,40);cx.fill();cx.restore();
     cx.textAlign='center';cx.font='italic 500 34px "Cormorant Garamond", serif';cx.fillStyle=COL.him;cx.fillText(m.sc.him,500,370);cx.fillStyle=COL.her;cx.fillText(m.sc.her,500,430);cx.textAlign='left'}
+  if(m.id==='rush')drawRush(t,dt);
   if(m.phase==='count'&&t-m.t0>3200){cx.fillStyle='rgba(0,0,0,.35)';cx.fillRect(0,0,540,780);cx.fillStyle='#f1e9e0';cx.font='italic 500 120px "Cormorant Garamond", serif';cx.textAlign='center';cx.fillText(cd||'Go',270,300);cx.textAlign='left'}
-  if(m.res){cx.fillStyle='#f1e9e0';cx.font='italic 500 46px "Cormorant Garamond", serif';cx.textAlign='center';cx.fillText(m.res==='her'?'She wins!':'He wins!',270,260);cx.textAlign='left'}}
+  if(m.res){cx.fillStyle='#f1e9e0';cx.font='italic 500 46px "Cormorant Garamond", serif';cx.textAlign='center';cx.fillText(m.res==='tie'?'A tie!':(m.res==='her'?'She wins!':'He wins!'),270,260);cx.textAlign='left'}}
 
 /* ================= boss: The Static ================= */
 let B=null;const GY=690,BYY=170;
 function startBoss(tok){view='boss';B={tok,on:false,bx:270,by:BYY,dir:1,phase:1,hp:2,core:0,cd:2.4,count:0,blocks:[],beam:null,hearts:5,both:0,
   p:{her:{x:200,y:GY,vy:0,frz:0},him:{x:340,frz:0}},inp:{her:{l:0,r:0},him:{l:0,r:0}},cool:{her:0,him:0},win:false,hitT:0,fx:[]};
-  overlay('Boss','The Static','It freezes anyone it touches. HE launches HER up at its heart when it opens. SHE yanks HIM out of danger. Either of you can unfreeze the other with your power.',6500);
+  overlay('Boss','The Wait','It freezes anyone it touches with its hourglasses. HE launches HER up at its heart when it opens. SHE yanks HIM out of danger. Either of you can unfreeze the other with your power.',6500);
   buildBossControls();setTimeout(()=>{if(B&&B.tok===tok){B.on=true;sfx.roar();shake=14;tip(mode==='local'?'<b>Him:</b> stand next to her and PUSH to launch her. <b>Her:</b> PULL to yank him to you.':(me==='him'?'<b>Stand next to her and PUSH</b> to launch her at its open heart.':'<b>PULL</b> to yank him to you. Get launched at its open heart.'))}},6500)}
 function buildBossControls(){const c=$('controls');const one=r=>`<div class="bossctl ${mode==='local'?'small':''}"><button data-r="${r}" data-k="l" aria-label="Left">◀</button><button class="act ${r}" data-r="${r}" data-k="a">${r==='her'?'PULL ♥':'PUSH ✦'}</button><button data-r="${r}" data-k="r" aria-label="Right">▶</button></div>`;
   c.innerHTML=mode==='local'?`<div style="display:flex;gap:10px;justify-content:center">${one('her')}${one('him')}</div>`:one(me);
@@ -494,28 +510,26 @@ function bossStep(dt){const b=B,P=b.p;if(!b.on||b.win)return;
 function freeze(r){const P=B.p;if(P[r].frz>0)return;P[r].frz=5;sfx.hurt();buzz(120);shake=8;burst(P[r].x,r==='her'?P.her.y:GY,'#9db6d6',14,140);const m=`<b>${r==='her'?'She':'He'}’s frozen!</b> ${r==='her'?'He can PUSH next to her':'She can PULL him'} to break the ice.`;tip(m);send({t:'btip',h:m})}
 function nextPhase(){const b=B;if(b.phase>=3){b.win=true;b.blocks=[];b.beam=null;sfx.win();buzz(120);for(let i=0;i<8;i++)setTimeout(()=>burst(b.bx+(Math.random()-.5)*220,b.by+(Math.random()-.5)*90,Math.random()<.5?COL.her:COL.him,26,260,true),i*140);
     send({t:'bs',s:stepIdx,b:{...b,blocks:[],win:true}});const i=stepIdx;setTimeout(()=>{if(stepIdx===i)goStep(i+1)},2800);return}
-  b.phase++;b.hp=2;b.core=0;b.blocks=[];b.count=0;b.hearts=Math.min(5,b.hearts+1);sfx.roar();shake=16;const m=b.phase===2?'<b>Phase 2.</b> Static beams now sweep half the floor. Pull him to the safe side.':'<b>Final phase.</b> Faster, more blocks, more beams. Stay close.';tip(m);send({t:'btip',h:m})}
+  b.phase++;b.hp=2;b.core=0;b.blocks=[];b.count=0;b.hearts=Math.min(5,b.hearts+1);sfx.roar();shake=16;const m=b.phase===2?'<b>Phase 2.</b> “Processing” beams now sweep half the floor. Pull him to the safe side.':'<b>Final phase.</b> Faster, more blocks, more beams. Stay close.';tip(m);send({t:'btip',h:m})}
 function applyB(o){if(!B||o.s!==stepIdx)return;const seen=new Set((B.fx||[]).map(f=>f.id));const n=performance.now();(o.b.fx||[]).forEach(f=>{f.id=f.id||(f.k+f.x+f.t);});o.b.fx=(o.b.fx||[]).map(f=>{const old=(B.fx||[]).find(q=>q.id===f.id);return {...f,t:old?old.t:n}});Object.assign(B,o.b);if(o.b.win&&!B.wonShown){B.wonShown=1;sfx.win()}}
 function drawBoss(t,dt){const b=B;if(!b)return;if(b.on)bossStep(dt);const P=b.p;
   const g=cx.createLinearGradient(0,0,0,780);g.addColorStop(0,'#0b0a10');g.addColorStop(1,'#181316');cx.fillStyle=g;cx.fillRect(0,0,540,780);
-  for(let i=0;i<120;i++){cx.fillStyle=`rgba(200,200,220,${.04+.04*Math.random()})`;cx.fillRect(Math.random()*540,Math.random()*780,2,2)}
+  for(let i=0;i<40;i++){cx.globalAlpha=.3+.3*Math.sin(t/600+i);cx.fillStyle='#f1e9e0';cx.fillRect((i*97)%540,(i*61)%420,1.5,1.5)}cx.globalAlpha=1;
   cx.fillStyle='#161212';cx.fillRect(0,GY+24,540,90);
-  if(b.beam){const a=.25+.25*Math.sin(t/40),x0=b.beam.side==='L'?0:270;cx.fillStyle=`rgba(157,182,214,${a})`;cx.fillRect(x0,GY-60,270,110);cx.fillStyle='#9db6d6';cx.font='600 13px Jost, sans-serif';cx.textAlign='center';cx.fillText('STATIC BEAM',x0+135,GY-70);cx.textAlign='left'}
-  // the Static: a flickering old-TV cloud
-  if(true){const sc=b.win?Math.max(0,1-(performance.now()-(b.winT||(b.winT=performance.now())))/1500):1;const flick=b.hitT&&performance.now()-b.hitT<220;cx.save();cx.translate(b.bx+(Math.random()-.5)*2,b.by);cx.scale(sc,sc);
-    cx.strokeStyle='#5a5560';cx.lineWidth=3;cx.beginPath();cx.moveTo(-20,-70);cx.lineTo(-50,-120);cx.moveTo(20,-70);cx.lineTo(55,-115);cx.stroke();
-    cx.fillStyle=flick?'#fff':'#2a2830';cx.beginPath();cx.roundRect(-120,-75,240,150,30);cx.fill();
-    for(let i=0;i<160;i++){const v=Math.random();cx.fillStyle=`rgba(${200*v},${200*v},${215*v},.7)`;cx.fillRect(-110+Math.random()*220,-65+Math.random()*130,4,3)}
-    if(b.core>0){cx.save();cx.shadowColor=COL.her;cx.shadowBlur=30+Math.sin(t/70)*12;cx.fillStyle=COL.her;heartPath(0,-30,58);cx.fill();cx.restore();cx.strokeStyle='#fff';cx.lineWidth=3;cx.beginPath();cx.arc(0,0,74+Math.sin(t/90)*4,0,7);cx.stroke()}
-    else{cx.fillStyle='#9db6d6';[-40,40].forEach(ex=>{cx.fillRect(ex-12,-14,24,8)})}cx.restore()}
-  b.blocks.forEach(k=>{cx.fillStyle='#3a3842';cx.fillRect(k.x-18,k.y-18,36,36);for(let i=0;i<10;i++){cx.fillStyle=`rgba(220,220,235,${Math.random()*.6})`;cx.fillRect(k.x-16+Math.random()*30,k.y-16+Math.random()*30,4,3)}});
+  if(b.beam){const a=.25+.25*Math.sin(t/40),x0=b.beam.side==='L'?0:270;cx.fillStyle=`rgba(157,182,214,${a})`;cx.fillRect(x0,GY-60,270,110);cx.fillStyle='#9db6d6';cx.font='600 13px Jost, sans-serif';cx.textAlign='center';cx.fillText('PROCESSING…',x0+135,GY-70);cx.textAlign='left'}
+  {const sc=b.win?Math.max(0,1-(performance.now()-(b.winT||(b.winT=performance.now())))/1500):1;const flick=b.hitT&&performance.now()-b.hitT<220;cx.save();cx.translate(b.bx,b.by);cx.scale(sc*1.25,sc*1.25);
+    cx.fillStyle=flick?'#fff':'#2a2830';cx.beginPath();cx.arc(0,0,82,0,7);cx.fill();
+    for(let i=0;i<12;i++){const a=i/12*Math.PI*2+t/250,al=((i+Math.floor(t/80))%12)/12;cx.fillStyle=`rgba(157,182,214,${.15+.85*al})`;cx.beginPath();cx.arc(Math.cos(a)*64,Math.sin(a)*64,8,0,7);cx.fill()}
+    if(b.core>0){cx.save();cx.shadowColor=COL.her;cx.shadowBlur=30+Math.sin(t/70)*12;cx.fillStyle=COL.her;heartPath(0,-26,52);cx.fill();cx.restore()}
+    else{cx.fillStyle='#9db6d6';[-24,24].forEach(ex=>cx.fillRect(ex-11,-16,22,8));cx.font='600 12px Jost, sans-serif';cx.textAlign='center';cx.fillText('PENDING',0,24);cx.textAlign='left'}cx.restore()}
+  b.blocks.forEach(k=>{cx.font='34px serif';cx.textAlign='center';cx.fillText('⏳',k.x,k.y+12);cx.textAlign='left'});
   (b.fx||[]).forEach(f=>{const a=1-(performance.now()-f.t)/500;if(a<=0||a>1)return;if(f.k==='push'){cx.strokeStyle=`rgba(243,227,195,${a})`;cx.lineWidth=4;cx.beginPath();cx.arc(f.x,GY-10,30+(1-a)*60,Math.PI*1.1,Math.PI*1.9);cx.stroke()}
     if(f.k==='pull'){cx.strokeStyle=`rgba(239,184,177,${a})`;cx.lineWidth=3;cx.setLineDash([8,8]);cx.beginPath();cx.moveTo(f.x,f.y-6);cx.lineTo(f.x2,GY-6);cx.stroke();cx.setLineDash([])}
     if(f.k==='thaw'){cx.strokeStyle=`rgba(157,182,214,${a})`;cx.lineWidth=3;cx.beginPath();cx.arc(f.x,f.y,20+(1-a)*40,0,7);cx.stroke()}});
   ['him','her'].forEach(r=>{const x=P[r].x,y=r==='her'?P.her.y:GY;blob(r,x,y,t,true,0,-1);if(P[r].frz>0){cx.fillStyle='rgba(157,182,214,.55)';cx.beginPath();cx.roundRect(x-26,y-28,52,52,10);cx.fill();cx.fillStyle='#fff';cx.font='600 12px Jost, sans-serif';cx.textAlign='center';cx.fillText(Math.ceil(P[r].frz)+'s',x,y+44);cx.textAlign='left'}bubble(r,x,y,t)});
   cx.textAlign='left';cx.font='500 12px Jost, sans-serif';cx.fillStyle='#a59c95';cx.fillText('PHASE '+b.phase+' / 3',16,28);for(let i=0;i<2;i++){cx.fillStyle=i<b.hp?'#ff8f86':'#3a3331';cx.fillRect(110+i*26,18,20,10)}
   for(let i=0;i<5;i++){cx.fillStyle=i<b.hearts?COL.her:'#3a3331';heartPath(412+i*24,14,18);cx.fill()}
-  if(b.win){cx.fillStyle='#f1e9e0';cx.font='italic 500 46px "Cormorant Garamond", serif';cx.textAlign='center';cx.fillText('The Static is gone',270,430);cx.textAlign='left'}}
+  if(b.win){cx.fillStyle='#f1e9e0';cx.font='italic 500 46px "Cormorant Garamond", serif';cx.textAlign='center';cx.fillText('The Wait is over',270,430);cx.textAlign='left'}}
 
 /* ================= narration (device voice) ================= */
 const NARR={on:true,voice:null,unlocked:0,speaking:false,until:0};
@@ -532,25 +546,25 @@ function hush(){NARR.speaking=false;try{window.speechSynthesis&&speechSynthesis.
 let scene=null;
 const STORY={
  prologue:[
-  {d:3800,txt:'Chapter 1 · Inside Our Phone',f:(t,k)=>{cx.fillStyle='#000';cx.fillRect(0,0,540,780);cx.save();cx.globalAlpha=Math.min(1,k*3);cx.textAlign='center';cx.fillStyle='#a59c95';cx.font='500 13px Jost, sans-serif';cx.fillText('TWO HALVES',270,330);cx.fillStyle='#f1e9e0';cx.font='italic 500 50px "Cormorant Garamond", serif';cx.fillText('Inside Our Phone',270,400);cx.fillStyle=COL.her;cx.font='500 12px Jost, sans-serif';cx.fillText('CHAPTER ONE',270,440);cx.restore()}},
-  {d:4600,txt:'Every night, 2,050 km apart, they fell asleep on a video call.',f:(t,k)=>{sky(t,.2);phoneArt(150,420,1,.5,'her',t);phoneArt(390,420,1,.5,'him',t);dashLine(205,420,335,420,k)}},
-  {d:3800,txt:'One night, the screen began to glow.',f:(t,k)=>{sky(t,.2);phoneArt(270,400,1.5,.5+k,'her',t)}},
-  {d:4400,txt:'Something tiny climbed out of the chat. A little heart called Dil.',f:(t,k)=>{sky(t,.3);phoneArt(270,430,1.5,1.2,'',t);dil(270,420-200*ease(k),t,k)}},
-  {d:5400,txt:'“Hurry! The Static is eating your messages. Every good morning. Every voice note.”',f:(t,k)=>{sky(t,.1);staticArt(270,230,t,1);for(let i=0;i<5;i++){const y=420+i*40,x=130+((i*97)%220)+k*60*(i%2?1:-1);bubbleArt(x,y,i%2?'him':'her',Math.max(0,1-k*1.4+i*.1))}dil(430,560,t,1)}},
-  {d:5200,txt:'Dil pulled them both inside. To get out, they would have to rely on each other.',f:(t,k)=>{sky(t,.4);phoneArt(270,400,1.5+k*2,1.4,'',t);const e=ease(k);blob('her',150+120*e,600-200*e,t,true,1,-1);blob('him',390-120*e,600-200*e,t,true,-1,-1)}}],
- magnet:[{d:4800,txt:'Inside the chat stream, Dil gave them their first gifts. A push for him. A pull for her.',f:(t,k)=>{room(t);chatWall(t);dil(270,200,t,k);blob('her',160,560,t,true,1,0);blob('him',380,560,t,true,-1,0);cx.strokeStyle=`rgba(239,184,177,.8)`;cx.lineWidth=3;cx.setLineDash([8,8]);cx.lineDashOffset=t/20;cx.beginPath();cx.moveTo(190,560);cx.lineTo(350,560);cx.stroke();cx.setLineDash([])}},
-         {d:4600,txt:'“They don’t work on walls,” Dil said. “They work on each other.”',f:(t,k)=>{room(t);chatWall(t);dil(270,200,t,1);const e=Math.abs(Math.sin(t/500));blob('her',220,560-160*e,t,true,0,-1);blob('him',320,560,t,true,-1,-1)}}],
- seed:[{d:4800,txt:'Next came the gallery, where every photo they ever shared grew like a garden.',f:(t,k)=>{sky(t,.5);for(let i=0;i<6;i++){const x=90+(i%3)*180,y=230+Math.floor(i/3)*170;cx.save();cx.translate(x,y);cx.rotate((i-2.5)*.05);cx.fillStyle='#f1e9e0';cx.fillRect(-60,-70,120,140);cx.fillStyle=i%2?COL.him:COL.her;cx.fillRect(-52,-62,104,100);cx.restore()}blob('her',220,640,t,true,1,-1);blob('him',320,640,t,true,-1,-1)}},
-       {d:4600,txt:'His rain made her strong. Her flowers made him light.',f:(t,k)=>{sky(t,.6);const s=1+.35*Math.min(1,k*2);cx.save();cx.translate(200,600);cx.scale(s,s);cx.translate(-200,-600);blob('her',200,600,t,true,1,0);cx.restore();cx.fillStyle='rgba(180,200,220,.7)';cx.beginPath();cx.ellipse(200,470,40,14,0,0,7);cx.fill();blob('him',360,600-90*Math.abs(Math.sin(t/400)),t,true,-1,0);cx.save();cx.translate(360,570-90*Math.abs(Math.sin(t/400)));for(let i=0;i<5;i++){cx.fillStyle=i%2?COL.her:'#fff3e6';cx.beginPath();cx.arc(-14+i*7,0,4,0,7);cx.fill()}cx.restore()}}],
- boss:[{d:4600,txt:'At the very heart of the phone, the Static was waiting.',f:(t,k)=>{sky(t,0);cx.fillStyle=`rgba(0,0,0,${k*.5})`;cx.fillRect(0,0,540,780);staticArt(270,230-60*(1-k),t,k);blob('her',220,620,t,true,0,-1);blob('him',320,620,t,true,0,-1)}},
-       {d:5200,txt:'It freezes whatever it touches. But it had never met two people who refuse to let go.',f:(t,k)=>{sky(t,0);cx.fillStyle='rgba(0,0,0,.5)';cx.fillRect(0,0,540,780);staticArt(270,230,t,1);blob('her',240,620,t,true,1,-1);blob('him',300,620,t,true,-1,-1);cx.fillStyle=COL.her;heartPath(270,560,24*(1+Math.sin(t/200)*.1));cx.fill()}}],
+  {d:3800,txt:'Chapter 1 · Coming Home',f:(t,k)=>{cx.fillStyle='#000';cx.fillRect(0,0,540,780);cx.save();cx.globalAlpha=Math.min(1,k*3);cx.textAlign='center';cx.fillStyle='#a59c95';cx.font='500 13px Jost, sans-serif';cx.fillText('TWO HALVES',270,330);cx.fillStyle='#f1e9e0';cx.font='italic 500 52px "Cormorant Garamond", serif';cx.fillText('Coming Home',270,400);cx.fillStyle=COL.her;cx.font='500 12px Jost, sans-serif';cx.fillText('CHAPTER ONE',270,440);cx.restore()}},
+  {d:5000,txt:'Karachi and Riyadh. 2,050 km, one chat, and a thousand “good morning love”s.',f:(t,k)=>{sky(t,.3);skyline(0,'k');skyline(1,'r');for(let i=0;i<5;i++){bubbleArt(i%2?370:170,170+i*58+(1-ease(k))*40,i%2?'him':'her',Math.min(1,k*3-i*.3),i%2?'good morning 🤍':'good morning love ☀️')}}},
+  {d:5600,txt:'They had a list. Chai on the balcony. A long drive with coffee. A walk in the rain. Pakoray, made together.',f:(t,k)=>{room(t);listArt(270,320,k,0);blob('her',190,630,t,true,1,-1);blob('him',350,630,t,true,-1,-1)}},
+  {d:4600,txt:'But first, she had to get to Riyadh. And something didn’t want her to.',f:(t,k)=>{sky(t,.1);planeArt(120+300*ease(k),330-80*ease(k),t);cx.fillStyle=`rgba(0,0,0,${k*.5})`;cx.fillRect(0,0,540,780);if(k>.5)waitArt(400,230,t,(k-.5)*2)}},
+  {d:5400,txt:'The Wait. Made of every “processing”, every “pending”, every night that felt too long.',f:(t,k)=>{sky(t,0);cx.fillStyle='rgba(0,0,0,.5)';cx.fillRect(0,0,540,780);waitArt(270,280,t,1,1.3);['pending…','processing…','last seen 3h ago','⏳'].forEach((s,i)=>{cx.font='500 14px Jost, sans-serif';cx.fillStyle='#9db6d6';cx.globalAlpha=Math.min(1,k*3-i*.4);cx.fillText(s,40+i*120,520+(i%2)*40);cx.globalAlpha=1})}},
+  {d:5400,txt:'So Dil, the little heart who lives in their chat, gave them each a power. “The wait can’t stop two people who move together.”',f:(t,k)=>{sky(t,.4);dil(270,280,t,k);blob('her',170,600,t,true,1,-1);blob('him',370,600,t,true,-1,-1);if(k>.5){cx.fillStyle=COL.her;heartPath(170,520,22);cx.fill();cx.fillStyle=COL.him;heartPath(370,520,22);cx.fill()}}}],
+ magnet:[{d:4800,txt:'First stop, Karachi. Her whole life in boxes, and a house full of gaps.',f:(t,k)=>{room(t);for(let i=0;i<5;i++)crateArt(110+i*80,560-(i%2)*70,.9);blob('her',200,640,t,true,1,0);dil(420,220,t,k)}},
+         {d:4400,txt:'“I’ll throw, you catch,” he said. “Like we always do.”',f:(t,k)=>{room(t);const e=Math.abs(Math.sin(t/500));blob('her',230,580-170*e,t,true,0,-1);blob('him',310,580,t,true,-1,-1)}}],
+ seed:[{d:4800,txt:'Next stop, Riyadh. An empty balcony, waiting for her.',f:(t,k)=>{sky(t,.7);skyline(0,'r');skyline(1,'r');balconyArt(t,0);blob('him',300,560,t,true,0,-1)}},
+       {d:4800,txt:'He brought the rain. She brought the flowers. Together, they made it home.',f:(t,k)=>{sky(t,.8);skyline(0,'r');skyline(1,'r');balconyArt(t,k);blob('her',220,560,t,true,1,0);blob('him',320,560,t,true,-1,0);cx.fillStyle='rgba(180,200,220,.7)';cx.beginPath();cx.ellipse(320,460,40,14,0,0,7);cx.fill()}}],
+ boss:[{d:4800,txt:'Then The Wait came out of hiding, right in the middle of the road between them.',f:(t,k)=>{sky(t,0);cx.fillStyle=`rgba(0,0,0,${k*.5})`;cx.fillRect(0,0,540,780);waitArt(270,240-60*(1-k),t,k);blob('her',200,620,t,true,0,-1);blob('him',340,620,t,true,0,-1)}},
+       {d:5000,txt:'It freezes everything it touches. But she wasn’t waiting alone any more.',f:(t,k)=>{sky(t,0);cx.fillStyle='rgba(0,0,0,.5)';cx.fillRect(0,0,540,780);waitArt(270,240,t,1);blob('her',240,620,t,true,1,-1);blob('him',300,620,t,true,-1,-1);cx.fillStyle=COL.her;heartPath(270,560,24*(1+Math.sin(t/200)*.1));cx.fill()}}],
  end:[
-  {d:4600,txt:'One by one, every message came home.',f:(t,k)=>{room(t);heartFill(PIECES,1,t);blob('her',210,600,t,true,1,-1);blob('him',330,600,t,true,-1,-1)}},
-  {d:5400,txt:'The screen flickered, and they woke up on the same call, smiling at the same moment.',f:(t,k)=>{sky(t,1);phoneArt(150,420,1,1,'her',t);phoneArt(390,420,1,1,'him',t);if(k>.5){cx.fillStyle=COL.her;heartPath(270,300,40*Math.min(1,(k-.5)*4));cx.fill()}}},
-  {d:4400,txt:'“Good morning,” they said, at exactly the same time.',f:(t,k)=>{sky(t,1);bubbleArt(190,330,'her',1,'good morning ☀️');bubbleArt(350,420,'him',Math.min(1,k*3),'good morning 🤍');blob('her',190,600,t,true,1,-1);blob('him',350,600,t,true,-1,-1)}},
-  {d:4200,txt:'Chapter 2. Coming soon.',f:(t,k)=>{cx.fillStyle='#000';cx.fillRect(0,0,540,780);cx.save();cx.globalAlpha=Math.min(1,k*3);cx.textAlign='center';cx.fillStyle='#a59c95';cx.font='500 13px Jost, sans-serif';cx.fillText('CHAPTER ONE COMPLETE',270,330);cx.fillStyle='#f1e9e0';cx.font='italic 500 46px "Cormorant Garamond", serif';cx.fillText('To be continued',270,400);cx.fillStyle=COL.her;cx.font='500 12px Jost, sans-serif';cx.fillText('CHAPTER TWO',270,440);cx.restore()}}]
+  {d:4600,txt:'Arrivals, Riyadh. The doors slid open.',f:(t,k)=>{room(t);arrivalsArt(t,k);blob('her',270,620-0*k,t,true,0,1);blob('him',270,700,t,true,0,-1)}},
+  {d:4800,txt:'Two halves, finally in the same city.',f:(t,k)=>{sky(t,1);const e=ease(Math.min(1,k*1.3));cx.fillStyle=COL.her;heartHalf(270-120*(1-e),200,220,true);cx.fillStyle=COL.him;heartHalf(270+120*(1-e),200,220,false);if(k>.7&&Math.random()<.4)burst(270,320,Math.random()<.5?COL.her:COL.him,2,180,true)}},
+  {d:5200,txt:'That evening: chai on the balcony. First thing on the list, done.',f:(t,k)=>{sky(t,.9);skyline(0,'r');skyline(1,'r');balconyArt(t,1);blob('her',230,560,t,true,1,0);blob('him',310,560,t,true,-1,0);listArt(420,170,1,Math.min(1,k*2),.45)}},
+  {d:4200,txt:'Chapter 2 · The List. Coming soon.',f:(t,k)=>{cx.fillStyle='#000';cx.fillRect(0,0,540,780);cx.save();cx.globalAlpha=Math.min(1,k*3);cx.textAlign='center';cx.fillStyle='#a59c95';cx.font='500 13px Jost, sans-serif';cx.fillText('CHAPTER ONE COMPLETE',270,330);cx.fillStyle='#f1e9e0';cx.font='italic 500 46px "Cormorant Garamond", serif';cx.fillText('To be continued',270,400);cx.fillStyle=COL.her;cx.font='500 12px Jost, sans-serif';cx.fillText('CHAPTER TWO · THE LIST',270,440);cx.restore()}}]
 };
-const OUTRO=['The chat stream stopped crackling. Out of the static, they rescued a message:','The gallery bloomed, and between two photos they found another message:','The Static burst into a thousand stars, and the last message came home:'];
+const OUTRO=['Every box made it out. Taped to the last one, a note in her handwriting:','The balcony bloomed. In the soil, he’d left a little note:','The Wait shattered into a thousand stars, and one message finally came through:'];
 for(let n=0;n<PIECES;n++)STORY['out'+n]=[{d:5800,txt:OUTRO[n]+' '+MEM[n],f:(t,k)=>{room(t);const fly=ease(Math.min(1,k*1.6));heartFill(n,1,t);if(k<.6)bubbleArt(270,130+190*fly,n%2?'him':'her',1,MEM[n].replace(/[“”]/g,''));else heartFill(n+1,Math.min(1,(k-.6)*3),t);blob('her',190,620,t,true,1,-1);blob('him',350,620,t,true,-1,-1)}}];
 function phoneArt(x,y,s,glow,who,t){cx.save();cx.translate(x,y);cx.scale(s,s);cx.shadowColor=COL.her;cx.shadowBlur=30*glow;cx.fillStyle='#1d1817';cx.beginPath();cx.roundRect(-46,-90,92,180,16);cx.fill();cx.shadowBlur=0;
   const g=cx.createLinearGradient(0,-80,0,80);g.addColorStop(0,`rgba(239,184,177,${.25*glow})`);g.addColorStop(1,`rgba(243,227,195,${.15*glow})`);cx.fillStyle=g;cx.beginPath();cx.roundRect(-40,-82,80,164,12);cx.fill();
@@ -558,6 +572,17 @@ function phoneArt(x,y,s,glow,who,t){cx.save();cx.translate(x,y);cx.scale(s,s);cx
 function bubbleArt(x,y,who,a,txt){cx.save();cx.globalAlpha=a;cx.font='500 15px Jost, sans-serif';const s=txt||'· · ·';const w=Math.max(70,cx.measureText(s).width+28);cx.fillStyle=who==='her'?COL.her:'#2a2120';cx.beginPath();cx.roundRect(x-w/2,y-18,w,36,16);cx.fill();cx.fillStyle=who==='her'?'#1a1414':'#f1e9e0';cx.textAlign='center';cx.fillText(s,x,y+5);cx.restore();cx.textAlign='left'}
 function staticArt(x,y,t,k){cx.save();cx.globalAlpha=Math.min(1,k*1.5);cx.translate(x,y);cx.strokeStyle='#5a5560';cx.lineWidth=3;cx.beginPath();cx.moveTo(-20,-70);cx.lineTo(-50,-120);cx.moveTo(20,-70);cx.lineTo(55,-115);cx.stroke();cx.fillStyle='#2a2830';cx.beginPath();cx.roundRect(-120,-75,240,150,30);cx.fill();
   for(let i=0;i<160;i++){const v=Math.random();cx.fillStyle=`rgba(${200*v},${200*v},${215*v},.7)`;cx.fillRect(-110+Math.random()*220,-65+Math.random()*130,4,3)}cx.fillStyle='#9db6d6';[-40,40].forEach(ex=>cx.fillRect(ex-12,-14,24,8));cx.restore()}
+function listArt(x,y,k,done,s=1){cx.save();cx.translate(x,y);cx.scale(s,s);cx.rotate(-.04);cx.fillStyle='#f1e9e0';cx.globalAlpha=Math.min(1,k*2);cx.fillRect(-150,-120,300,250);cx.fillStyle='#1a1414';cx.font='italic 600 26px "Cormorant Garamond", serif';cx.textAlign='left';cx.fillText('Our list ♥',-125,-80);
+  const items=['chai on the balcony','long drive + coffee','walk in the rain','pakoray together'];cx.font='500 17px Jost, sans-serif';items.forEach((s,i)=>{const a=Math.min(1,k*4-i*.6);if(a<=0)return;cx.globalAlpha=a;cx.strokeStyle='#5a504b';cx.lineWidth=2;cx.strokeRect(-125,-52+i*42,16,16);cx.fillStyle='#1a1414';cx.fillText(s,-98,-38+i*42);
+    if(i===0&&done>0){cx.strokeStyle='#d9837c';cx.lineWidth=3;cx.beginPath();cx.moveTo(-122,-44);cx.lineTo(-116,-38);cx.lineTo(-104,-58);cx.stroke()}});cx.restore();cx.globalAlpha=1}
+function planeArt(x,y,t){cx.save();cx.translate(x,y);cx.rotate(-.18);cx.fillStyle='#f1e9e0';cx.beginPath();cx.ellipse(0,0,46,9,0,0,7);cx.fill();cx.beginPath();cx.moveTo(-6,0);cx.lineTo(-20,-30);cx.lineTo(4,0);cx.fill();cx.beginPath();cx.moveTo(-6,0);cx.lineTo(-20,30);cx.lineTo(4,0);cx.fill();cx.beginPath();cx.moveTo(-40,0);cx.lineTo(-50,-14);cx.lineTo(-34,0);cx.fill();cx.fillStyle=COL.her;heartPath(14,-5,8);cx.fill();cx.restore()}
+function waitArt(x,y,t,k,s=1){cx.save();cx.globalAlpha=Math.min(1,k*1.5);cx.translate(x,y);cx.scale(s,s);cx.fillStyle='#2a2830';cx.beginPath();cx.arc(0,0,80,0,7);cx.fill();
+  for(let i=0;i<12;i++){const a=i/12*Math.PI*2+t/300,al=((i+Math.floor(t/90))%12)/12;cx.fillStyle=`rgba(157,182,214,${.15+.85*al})`;cx.beginPath();cx.arc(Math.cos(a)*62,Math.sin(a)*62,7,0,7);cx.fill()}
+  cx.fillStyle='#9db6d6';[-24,24].forEach(ex=>cx.fillRect(ex-10,-14,20,7));cx.font='600 11px Jost, sans-serif';cx.textAlign='center';cx.fillText('PENDING',0,26);cx.restore();cx.textAlign='left'}
+function balconyArt(t,k){cx.fillStyle='#1d1817';cx.fillRect(40,590,460,30);cx.strokeStyle='#5a504b';cx.lineWidth=3;cx.beginPath();cx.moveTo(40,500);cx.lineTo(500,500);cx.stroke();for(let i=0;i<=23;i++){cx.beginPath();cx.moveTo(40+i*20,500);cx.lineTo(40+i*20,590);cx.stroke()}
+  for(let i=0;i<4;i++){const x=80+i*120,h=60*ease(Math.min(1,k*2-i*.2));cx.fillStyle='#4e3b2d';cx.fillRect(x-22,470,44,30);if(h>0){cx.strokeStyle=SAGE;cx.lineWidth=3;cx.beginPath();cx.moveTo(x,470);cx.lineTo(x,470-h);cx.stroke();cx.fillStyle=i%2?COL.him:COL.her;cx.beginPath();cx.arc(x,470-h,10,0,7);cx.fill()}}
+  if(k>.6){cx.fillStyle='#f1e9e0';[250,290].forEach(x=>{cx.fillRect(x-9,470,18,22)});cx.strokeStyle='rgba(241,233,224,.5)';cx.lineWidth=2;[250,290].forEach(x=>{cx.beginPath();cx.moveTo(x,465);cx.quadraticCurveTo(x+6,450+Math.sin(t/200)*4,x,440);cx.stroke()})}}
+function arrivalsArt(t,k){cx.fillStyle='#1d1817';cx.fillRect(130,200,280,380);const o=ease(k)*120;cx.fillStyle='#2b2624';cx.fillRect(140,210,130-o,360);cx.fillRect(270+o,210,130-o,360);cx.fillStyle='#9fd3a8';cx.font='600 16px Jost, sans-serif';cx.textAlign='center';cx.fillText('ARRIVALS',270,190);cx.textAlign='left'}
 function chatWall(t){for(let i=0;i<6;i++){const y=120+i*55+((t/40)%55);bubbleArt(i%2?380:160,y,i%2?'him':'her',.18)}}
 function sky(t,warm){const g=cx.createLinearGradient(0,0,0,780);g.addColorStop(0,'#07060a');g.addColorStop(1,`rgb(${20+30*warm},${14+12*warm},${18+8*warm})`);cx.fillStyle=g;cx.fillRect(0,0,540,780);
   for(let i=0;i<60;i++){const x=(i*97)%540,y=70+(i*53)%380,tw=.4+.6*Math.abs(Math.sin(t/700+i));cx.globalAlpha=tw*.8;cx.fillStyle='#f1e9e0';cx.fillRect(x,y,1.6,1.6)}cx.globalAlpha=1}
@@ -620,11 +645,14 @@ function onMsg(o){switch(o.t){
   case 'again':if(isHost)goStep(0);break;
   case 'g':applyG(o);break;
   case 'tug':if(isHost&&M)tug(o.r);break;
-  case 'tugv':if(M){M.v=o.v;tone(500,.04,'triangle',.03)}break;
+  case 'tugv':if(M){M.v=o.v;if(o.fz)M.frenzy=performance.now()+o.fz;if(o.slip){sfx.boing();shake=10}if(o.fz>1000)sfx.good();if(M.phase==='count')M.phase='go'}break;
   case 'tugr':if(M){M.wins=o.wins;M.phase='between';burst(o.w==='her'?80:460,420,COL[o.w],24,200,true);sfx.good();tip(`<b>${o.w==='her'?'She':'He'} takes the round.</b> Her ${o.wins.her} · Him ${o.wins.him}`)}break;
   case 'tugn':if(M){M.round=o.round;M.v=0;tip(`Round ${o.round}.`);countIn()}break;
   case 'pad':if(isHost&&M&&M.pads){M.pads[o.r].x=o.x;M.pads[o.r].y=o.y}break;
   case 'hk':if(M&&!isHost){M.pk=o.pk;const mine={...M.pads[me]};M.pads=Object.assign(M.pads,o.pads);M.pads[me]=Object.assign(M.pads[me],mine);M.sc=o.sc;if(o.goal){sfx.win();burst(270,o.goal==='her'?40:740,COL[o.goal],30,260,true);tip(`<b>${o.goal==='her'?'She':'He'} scores!</b> Her ${o.sc.her} · Him ${o.sc.him}`)}if(M.phase==='count'&&o.pk.vx)M.phase='go'}break;
+  case 'rx':if(isHost&&M&&M.rush)M.rush.px[o.r]=o.x;break;
+  case 'rs':if(M&&M.rush&&!isHost){const mine=M.rush.px[me];M.rush.items=o.items;M.rush.px=o.px;M.rush.px[me]=mine;M.rush.pts=o.pts;M.rush.left=o.left;if(M.phase==='count')M.phase='go'}break;
+  case 'rsfx':if(M&&M.rush){sfx[o.v>0?'good':'bad']()}break;
   case 'mres':if(M&&!M.res){M.res=o.w;M.phase='end';score=o.score;sfx.win();miniEnd()}break;
   case 'bin':if(isHost&&B){B.inp[o.r]=o.inp}break;
   case 'bpw':if(isHost&&B)doPow(o.r);break;
