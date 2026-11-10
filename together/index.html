@@ -108,7 +108,7 @@ h1{text-shadow:0 0 30px rgba(239,184,177,.35)}
 <div class="wrap">
   <section class="screen" id="home">
     <h1>Two Halves</h1>
-    <p class="sub">Chapter 1. 3,000 km, four fights, and how we fixed every one. No buttons: just touch.</p>
+    <p class="sub">Chapter 1. 3,000 km, six fights, and six ways back to each other. Quick stages. No buttons: just touch.</p>
     <button class="btn" id="bCreate">Create a room</button>
     <button class="btn ghost" id="bJoin">Join a room</button>
     <button class="btn ghost" id="bLocal">Play on one phone</button>
@@ -141,7 +141,7 @@ h1{text-shadow:0 0 30px rgba(239,184,177,.35)}
       <div class="overlay" id="ov"><span class="n" id="ovN"></span><span class="t" id="ovT"></span><span class="s" id="ovS"></span><button class="btn" id="ovBtn" hidden style="max-width:240px;margin-top:8px"></button></div>
     </div>
     <div class="quick" id="quick" hidden></div>
-    <div class="tools"><button id="bRestart" hidden>↺ Restart stage</button><button id="bMusic">♪ Music on</button><button id="bSfx">🔊 Sounds on</button><button id="bSong">🎵 Your song</button><input type="file" id="songFile" accept="audio/*" hidden></div>
+    <div class="tools"><button id="bRestart" hidden>↺ Restart stage</button><button id="bSkipSt" hidden>Stuck? Skip ›</button><button id="bMusic">♪ Music on</button><button id="bSfx">🔊 Sounds on</button><button id="bSong">🎵 Your song</button><input type="file" id="songFile" accept="audio/*" hidden></div>
     <p class="tip" id="tip"></p>
     <div class="controls" id="controls"></div>
   </section>
@@ -333,8 +333,8 @@ function freshStage(id){const def=STAGES[id];const g={map:def.map.map(r=>r.split
 function loadStage(id,tok){const def=STAGES[id];view='stage';const f=freshStage(id);
   G={id,def,tok,playing:false,...f,face:{her:{x:0,y:-1},him:{x:0,y:-1}},fx:[]};
   G.start={her:{...G.pos.her},him:{...G.pos.him}};G.rp={her:{...G.pos.her},him:{...G.pos.him}};
-  buildStageControls();overlay(def.tag||'New powers',def.name,def.sub,6000);
-  setTimeout(()=>{if(G&&G.tok===tok){G.playing=true;stageTip()}},6000)}
+  buildStageControls();overlay(def.tag||'New powers',def.name,def.sub,3800);
+  setTimeout(()=>{if(G&&G.tok===tok){G.playing=true;G.playT=performance.now();stageTip()}},3800)}
 function stageTip(){const p=G.def.powers;const nm={lamp:'LIGHT 🕯',reply:'REPLY 💬',hi:'WAVE 👋',pull:'PULL ♥',push:'PUSH ✦',plant:'PLANT 🌱',rain:'RAIN ☁',tele:'COME TO YOU ✨',carry:'CARRY 🤲'};
   const hint=G.def.hint||(G.id==='magnet'?'Stand behind her and PUSH to launch her. Line up and she can PULL you.':G.id==='seed'?'Rain on her to make her big. Plant on him for a flower crown.':'Stand next to her and CARRY her over the thorns. She can appear beside you any time.');
   tip((mode==='local'?`<b>Her: ${nm[p.her]}</b> · <b>Him: ${nm[p.him]}</b>. `:`Your power: <b>${nm[p[me]]}</b>. `)+hint)}
@@ -455,7 +455,7 @@ document.addEventListener('keyup',e=>{delete keysDown[e.key]});
   const near=p=>{if(mode==='net')return me;if(view==='stage'&&G){if(G.carry)return 'him';const d=r=>Math.hypot(G.rp[r].x*T+T/2-p.x,G.rp[r].y*T+T/2-p.y);return d('her')<=d('him')?'her':'him'}
     if(view==='boss'&&B)return Math.abs(B.p.her.x-p.x)<=Math.abs(B.p.him.x-p.x)?'her':'him';return p.x<270?'her':'him'};
   bw.addEventListener('pointerdown',e=>{if(!['stage','boss','mini'].includes(view)||scene)return;const p=cpt(e);const r=near(p);P[e.pointerId]={r,ox:p.x,oy:p.y,sx:p.x,sy:p.y,t:performance.now(),moved:0};if(view==='stage'){const s=P[e.pointerId];s.pt=setTimeout(()=>{if(P[e.pointerId]===s&&!s.moved&&view==='stage'){s.pinged=1;doPing(s.r,Math.floor(p.x/T),Math.floor(p.y/T))}},480)}
-    if(view==='mini'&&M&&M.id==='tug'){miniPress(r);P[e.pointerId].tug=1}});
+    if(view==='mini'&&M&&M.id==='tug'){tugTap(r,p);miniPress(r);P[e.pointerId].tug=1}});
   bw.addEventListener('pointermove',e=>{const s=P[e.pointerId];if(!s||s.tug)return;const p=cpt(e);
     if(view==='stage'){const dx=p.x-s.ox,dy=p.y-s.oy;if(Math.max(Math.abs(dx),Math.abs(dy))>=42){if(Math.abs(dx)>Math.abs(dy))gmove(s.r,Math.sign(dx),0);else gmove(s.r,0,Math.sign(dy));s.ox=p.x;s.oy=p.y;s.moved=1;buzz(4)}}
     if(view==='boss'&&B){s.fx=p.x;if(Math.hypot(p.x-s.sx,p.y-s.sy)>16)s.moved=1;if(s.moved&&!s.iv){const st=()=>{if(!B){clearInterval(s.iv);return}const d=s.fx-B.p[s.r].x;setIn(s.r,'l',d<-12?1:0);setIn(s.r,'r',d>12?1:0)};st();s.iv=setInterval(st,50)}}});
@@ -469,13 +469,13 @@ let M=null;
 function startMini(id,tok){view='mini';M={id,tok,phase:'count',t0:performance.now(),v:0,round:1,wins:{her:0,him:0},res:null,
   pk:{x:270,y:390,vx:0,vy:0},pads:{her:{x:270,y:640,px:270,py:640},him:{x:270,y:140,px:270,py:140}},sc:{her:0,him:0},ptr:{}};
   const name={tug:'The Last Croissant',hockey:'Emoji Hockey',mehndi:'Mehndi Race'}[id];
-  const sub={tug:'“2 min pehle cats and dogs, ab kitna pyaar” 😛 One croissant. Two hungry people. Tap the board like crazy to drag it to your side. Watch for FRENZY: taps count double!',hockey:'Kam rage bait kia krien 😤 Settle it on the rink. Drag your paddle and smash the heart into their goal. First to 3 wins.',mehndi:'Wedding prep! Trace the mehndi design with your finger, dot by dot. Slip off the line and it smudges, costing you dots. First to finish wins.'}[id];
+  const sub={tug:'“2 min pehle cats and dogs, ab kitna pyaar” 😛 One croissant. Two hungry people. Tap like crazy to drag it home, and grab the chocolate 🍫 the moment it appears: triple pull!',hockey:'Kam rage bait kia krien 😤 Settle it on the rink. Drag your paddle and smash the heart into their goal. First to 2 wins.',mehndi:'Wedding prep! Trace the mehndi design with your finger, dot by dot. Slip off the line and it smudges, costing you dots. First to finish wins.'}[id];
   overlay('Mini-game',name,sub,3200);
   const c=$('controls');
   if(id==='tug'){c.innerHTML='<p class="gest">'+(mode==='local'?'Her: tap the left half · Him: tap the right half':'Tap the board as fast as you can')+'</p>';
     c.querySelectorAll('button').forEach(b=>{b.addEventListener('pointerdown',e=>{e.preventDefault();b.classList.add('down');miniPress(b.dataset.r)});['pointerup','pointerleave','pointercancel'].forEach(n=>b.addEventListener(n,()=>b.classList.remove('down')))});
     tip('First to drag the croissant home wins. Quick!')}
-  else if(id==='mehndi'){c.innerHTML='';M.mh={prog:{her:0,him:0},smudge:[],last:{her:0,him:0},path:mehndiPath()};tip(mode==='local'?'<b>Her:</b> trace on the left. <b>Him:</b> trace on the right.':'<b>Trace the dots</b> in order with your finger. Don’t lift, don’t slip.')}
+  else if(id==='mehndi'){c.innerHTML='';M.mh={prog:{her:0,him:0},smudge:[],last:{her:0,him:0},path:mehndiPath().slice(0,47)};tip(mode==='local'?'<b>Her:</b> trace on the left. <b>Him:</b> trace on the right.':'<b>Trace the dots</b> in order with your finger. Don’t lift, don’t slip.')}
   else{c.innerHTML='';tip(mode==='local'?'<b>Two fingers:</b> her on the bottom half, him on the top half.':`<b>Drag on the board</b> to move your paddle. You’re ${me==='her'?'at the bottom':'at the top'}.`)}
   setTimeout(()=>{if(M&&M.tok===tok)countIn()},3200)}
 function countIn(){M.phase='count';M.t0=performance.now()-3200;setTimeout(()=>{if(M&&M.phase==='count'){M.phase='go';sfx.good()}},3000)}
@@ -488,7 +488,7 @@ function roundWin(w){M.wins[w]++;M.phase='between';sfx.good();burst(w==='her'?80
   if(done){setTimeout(()=>miniWin(w),900)}else setTimeout(()=>{M.round++;M.v=0;send({t:'tugv',v:0});send({t:'tugn',round:M.round});tip(`Round ${M.round}.`);countIn()},1800)}
 function miniWin(w){if(M.res)return;M.res=w;M.phase='end';if(w!=='tie')score[w]++;send({t:'mres',w,score});sfx.win();miniEnd()}
 function miniEnd(){const w=M.res;tip(w==='tie'?`<b>A tie!</b> Mini-games: Her ${score.her} · Him ${score.him}`:`<b>${w==='her'?'She':'He'} wins ${M.id==='tug'?'the croissant 🥐':'!'}</b> Mini-games: Her ${score.her} · Him ${score.him}`);
-  for(let i=0;i<4;i++)setTimeout(()=>burst(270,360,w==='him'?COL.him:COL.her,30,260,true),i*200);const i=stepIdx;if(isHost)setTimeout(()=>{if(stepIdx===i)goStep(i+1)},3600)}
+  for(let i=0;i<4;i++)setTimeout(()=>burst(270,360,w==='him'?COL.him:COL.her,30,260,true),i*200);const i=stepIdx;if(isHost)setTimeout(()=>{if(stepIdx===i)goStep(i+1)},2200)}
 /* mehndi race */
 function mehndiPath(){const pts=[];const yo=40;for(let i=0;i<=46;i++){const t=Math.PI-i/46*Math.PI*2;const x=16*Math.pow(Math.sin(t),3),y=-(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t));pts.push({x:x*12,y:y*12-10+yo})}
   for(let i=0;i<=22;i++){const a=i/22*Math.PI*3.2,r=58-i*2.1;pts.push({x:Math.cos(a+Math.PI/2)*r,y:Math.sin(a+Math.PI/2)*r-20+yo})}return pts}
@@ -533,10 +533,10 @@ function hkStep(dt){const m=M,p=m.pk;if(m.phase!=='go'||!isHost)return;
   p.vx*=Math.pow(.6,dt);p.vy*=Math.pow(.6,dt);
   m.sendT=(m.sendT||0)-dt;if(m.sendT<=0&&mode==='net'){m.sendT=1/24;send({t:'hk',pk:p,pads:{her:{x:m.pads.her.x,y:m.pads.her.y},him:{x:m.pads.him.x,y:m.pads.him.y}},sc:m.sc})}}
 function goal(scorer){const m=M;m.sc[scorer]++;sfx.win();shake=10;burst(270,scorer==='her'?40:740,COL[scorer],30,260,true);m.pk={x:270,y:390,vx:0,vy:(scorer==='her'?-1:1)*60};send({t:'hk',pk:m.pk,pads:m.pads,sc:m.sc,goal:scorer});
-  tip(`<b>${scorer==='her'?'She':'He'} scores!</b> Her ${m.sc.her} · Him ${m.sc.him}`);if(m.sc[scorer]>=3)miniWin(scorer)}
+  tip(`<b>${scorer==='her'?'She':'He'} scores!</b> Her ${m.sc.her} · Him ${m.sc.him}`);if(m.sc[scorer]>=2)miniWin(scorer)}
 function drawMini(t,dt){if(!M)return;cx.fillStyle='#120f0f';cx.fillRect(0,0,540,780);const m=M;
   const cd=m.phase==='count'?Math.max(0,3-Math.floor((t-m.t0-3200)/1000)):0;
-  if(m.id==='tug'){tugEvents(dt);const fz=performance.now()<(m.frenzy||0);const x=270+m.v*12;if(fz){cx.fillStyle=`rgba(239,184,177,${.08+.06*Math.sin(t/60)})`;cx.fillRect(0,0,540,780);cx.fillStyle='#ff8f86';cx.font='italic 600 54px "Cormorant Garamond", serif';cx.textAlign='center';cx.fillText('FRENZY ×2',270,260+Math.sin(t/50)*4);cx.textAlign='left'}cx.fillStyle='#1d1817';cx.fillRect(0,470,540,310);cx.strokeStyle='#8a7560';cx.lineWidth=7;cx.beginPath();cx.moveTo(60,420);cx.quadraticCurveTo(270,430+Math.sin(t/80)*3,480,420);cx.stroke();
+  if(m.id==='tug'){tugEvents(dt);const fz=performance.now()<(m.frenzy||0);const x=270+m.v*18;if(fz){cx.fillStyle=`rgba(239,184,177,${.08+.06*Math.sin(t/60)})`;cx.fillRect(0,0,540,780);cx.fillStyle='#ff8f86';cx.font='italic 600 54px "Cormorant Garamond", serif';cx.textAlign='center';cx.fillText('FRENZY ×2',270,260+Math.sin(t/50)*4);cx.textAlign='left'}cx.fillStyle='#1d1817';cx.fillRect(0,470,540,310);cx.strokeStyle='#8a7560';cx.lineWidth=7;cx.beginPath();cx.moveTo(60,420);cx.quadraticCurveTo(270,430+Math.sin(t/80)*3,480,420);cx.stroke();
     cx.strokeStyle='#5a504b';cx.lineWidth=2;cx.setLineDash([6,8]);cx.beginPath();cx.moveTo(54,300);cx.lineTo(54,520);cx.moveTo(486,300);cx.lineTo(486,520);cx.stroke();cx.setLineDash([]);
     cx.save();cx.translate(x,415+Math.sin(t/60)*2);cx.rotate(Math.sin(t/120)*.15);cx.font='64px serif';cx.textAlign='center';cx.fillText('🥐',0,20);cx.restore();blob('her',40+Math.min(0,m.v)*1.5,440,t,true,1,0);blob('him',500+Math.max(0,m.v)*1.5,440,t,true,-1,0);
     cx.textAlign='center';cx.font='500 13px Jost, sans-serif';cx.fillStyle='#a59c95';cx.fillText('HER SIDE',60,560);cx.fillText('HIS SIDE',480,560);cx.textAlign='left'}
@@ -566,7 +566,7 @@ function doPow(r){const b=B,P=b.p,o=other(r),n=performance.now();if(P[r].frz>0)r
   if(Math.abs(b.press.her-b.press.him)<650){untie()}
   else setTimeout(()=>{if(B===b&&b.press[r]===n&&Math.abs(b.press.her-b.press.him)>=650){sfx.bump();const m='<b>The strand slipped.</b> You have to UNTIE at the same moment. Count it down!';tip(m);send({t:'btip',h:m})}},700)}
 function untie(){const b=B;b.press={her:-9e9,him:-9e9};b.unties++;b.hitT=performance.now();sfx.hit();sfx.good();shake=12;buzz(80);for(let i=0;i<3;i++)burst(KX+(Math.random()-.5)*120,KY+(Math.random()-.5)*60,i%2?COL.him:COL.her,20,240,true);
-  if(b.unties>=3){nextPhase();return}
+  if(b.unties>=2){nextPhase();return}
   relocate();const m=`<b>A loop came loose!</b> ${3-b.unties} more this phase.`;tip(m);send({t:'btip',h:m})}
 function relocate(){const b=B;const a=60+Math.random()*180,c=300+Math.random()*180;if(b.phase>=3&&Math.random()<.5){b.ends.her.x=c;b.ends.him.x=a;b.swapped=true;const m='<b>The strands swapped sides!</b> Cross over.';tip(m);send({t:'btip',h:m})}else{b.ends.her.x=a;b.ends.him.x=c;b.swapped=false}}
 function bossResetPhase(){const b=B;b.unties=0;b.hearts=5;b.coils=[];b.wave=null;b.p.her.frz=0;b.p.him.frz=0;relocate()}
@@ -585,7 +585,7 @@ function bossStep(dt){const b=B,P=b.p;if(!b.on||b.win)return;b.t+=dt;
   if(P.her.frz>0&&P.him.frz>0){b.both=(b.both||0)+dt;if(b.both>1){b.both=0;b.hearts--;P.her.frz=0;P.him.frz=0;sfx.hurt();flashT=performance.now();const m=b.hearts>0?'<b>Both tangled!</b> You lost a heart. Stay close so you can free each other.':'<b>Out of hearts.</b> This phase starts again.';tip(m);send({t:'btip',h:m});if(b.hearts<=0)bossResetPhase()}}else b.both=0;
   b.sendT=(b.sendT||0)-dt;if(b.sendT<=0&&mode==='net'){b.sendT=1/20;send({t:'bs',s:stepIdx,b:{phase:b.phase,unties:b.unties,ends:b.ends,coils:b.coils,wave:b.wave,hearts:b.hearts,p:b.p,win:b.win,hitT:b.hitT,t:b.t,fx:b.fx.slice(-4)}})}}
 function tangle(r){const P=B.p;if(P[r].frz>0)return;P[r].frz=5;sfx.hurt();buzz(120);shake=8;burst(P[r].x,GY,'#c9a96e',12,120);const m=`<b>${r==='her'?'She':'He'}’s tangled!</b> ${r==='her'?'He':'She'} can walk over and tap UNTIE to free ${r==='her'?'her':'him'}.`;tip(m);send({t:'btip',h:m})}
-function nextPhase(){const b=B;if(b.phase>=3){b.win=true;b.coils=[];b.wave=null;sfx.win();buzz(120);for(let i=0;i<8;i++)setTimeout(()=>burst(KX+(Math.random()-.5)*240,KY+(Math.random()-.5)*100,Math.random()<.5?COL.her:COL.him,26,260,true),i*140);
+function nextPhase(){const b=B;if(b.phase>=2){b.win=true;b.coils=[];b.wave=null;sfx.win();buzz(120);for(let i=0;i<8;i++)setTimeout(()=>burst(KX+(Math.random()-.5)*240,KY+(Math.random()-.5)*100,Math.random()<.5?COL.her:COL.him,26,260,true),i*140);
     send({t:'bs',s:stepIdx,b:{...b,coils:[],win:true}});const i=stepIdx;setTimeout(()=>{if(stepIdx===i)goStep(i+1)},2800);return}
   b.phase++;b.unties=0;b.coils=[];b.hearts=Math.min(5,b.hearts+1);relocate();sfx.roar();shake=16;const m=b.phase===2?'<b>Phase 2.</b> The strands start moving, and nerve waves sweep half the floor.':'<b>Final phase.</b> Faster, and the strands can swap sides. Talk it through!';tip(m);send({t:'btip',h:m})}
 function applyB(o){if(!B||o.s!==stepIdx)return;const n=performance.now();o.b.fx=(o.b.fx||[]).map(f=>{const id=f.k+Math.round(f.x)+f.t;const old=(B.fx||[]).find(q=>q.id===id);return {...f,id,t2:old?old.t2:n}});Object.assign(B,o.b);if(o.b.win&&!B.wonShown){B.wonShown=1;sfx.win()}}
@@ -805,6 +805,9 @@ function onMsg(o){switch(o.t){
   case 'bs':applyB(o);break;
   case 'btip':tip(o.h);break;
   case 'rsttip':tip('<b>Stage restarted</b> by your other half.');break;
+  case 'tgs':if(M&&M.id==='tug'){const n=performance.now();M.v=o.v;M.ch=o.ch?{x:o.ch.x,y:o.ch.y,until:n+o.ch.ms}:null;M.boost=o.b?{r:o.b.r,until:n+o.b.ms}:null;M.sd=o.sd;if(M.phase==='count')M.phase='go'}break;
+  case 'tgg':if(isHost)chocoGrab(o.r);break;
+  case 'skipreq':if(isHost&&view==='stage'){tip('Skipped. On to the making up 🤍');goStep(stepIdx+1)}break;
   case 'ping':PINGS.push({x:o.x,y:o.y,r:o.r,t:performance.now()});sfx.good();buzz(18);break;
   case 'lit':if(G)litSet(o.k,o.u);break;
   case 'rep':if(G){G.reply=performance.now()+1800}break;
@@ -839,7 +842,7 @@ function startNet(){netStatus(true);show('game');$('who').innerHTML='You are <b 
 /* ================= main loop ================= */
 function loop(t){const dt=Math.min(.05,(t-(lastT||t))/1000);lastT=t;shake*=Math.pow(.02,dt);
   cx.save();cx.fillStyle='#0a0808';cx.fillRect(0,0,540,780);if(shake>.3)cx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
-  if(scene)drawScene(t);else if(view==='stage')drawStage(t,dt);else if(view==='mini')drawMini(t,dt);else if(view==='boss')drawBoss(t,dt);else if(view==='fix')drawFix(t);else if(view==='final')drawFinal(t);
+  if(scene)drawScene(t);else if(view==='stage')drawStage(t,dt);else if(view==='mini'){drawMini(t,dt);tugOverlay(t)}else if(view==='boss')drawBoss(t,dt);else if(view==='fix')drawFix(t);else if(view==='final')drawFinal(t);
   parts.forEach(p=>{p.age+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=p.g*dt;p.vx*=.98;const a=Math.max(0,1-p.age/p.life);cx.globalAlpha=a;cx.fillStyle=p.col;if(p.heart){heartPath(p.x,p.y-p.r*2,p.r*3.2);cx.fill()}else{cx.beginPath();cx.arc(p.x,p.y,p.r*a+.5,0,7);cx.fill()}});cx.globalAlpha=1;parts=parts.filter(p=>p.age<p.life);
   if(flashT&&t-flashT<350){cx.fillStyle=`rgba(255,143,134,${.22*(1-(t-flashT)/350)})`;cx.fillRect(0,0,540,780)}
   cx.restore();requestAnimationFrame(loop)}
@@ -879,7 +882,7 @@ function gmove(r,dx,dy){if(!G||!G.playing)return;if(mode==='net'&&r!==me&&!FORCE
   gmove0(r,dx,dy);const p=G.pos[r];if(p.x===b[r].x&&p.y===b[r].y)return;
   if(G.carry){afterMove();return}
   if(d.mirror){FORCE=1;gmove0(o,-dx,dy);FORCE=0}
-  if(d.thread&&cheb(G.pos.her,G.pos.him)>3){FORCE=1;gmove0(o,dx,dy);FORCE=0;
+  if(d.thread&&cheb(G.pos.her,G.pos.him)>3){const tc=gt(G.pos[o].x+dx,G.pos[o].y+dy);if(tc!=='h'&&tc!=='o'){FORCE=1;gmove0(o,dx,dy);FORCE=0}
     if(cheb(G.pos.her,G.pos.him)>3){G.pos.her=b.her;G.pos.him=b.him;sfx.bump();buzz(20);tip('The red thread holds 🧵 <b>Bring each other along.</b>')}
     else tip(`${r==='her'?'She':'He'} pulled ${r==='her'?'him':'her'} along 🧵`)}
   afterMove()}
@@ -965,10 +968,10 @@ function fixInput(r,down){if(!F||F.done)return;if(mode==='net'&&r!==me)return;if
 function fixIn(r,down){const n=performance.now();F.hold[r]=down?(F.hold[r]||n):0;if(!isHost||F.done)return;const s=F.def.steps[F.i];if(!s)return;
   if(down&&s.a==='tap'&&(s.w===r||s.w==='both'))advance();else if(down&&s.w!=='both'&&s.w!==r){tip(`This one’s <b>${s.w==='her'?'hers':'his'}</b> 😌`);send({t:'btip',h:`This one’s <b>${s.w==='her'?'hers':'his'}</b> 😌`})}}
 function fixTick(n){if(!isHost||!F||F.done)return;const s=F.def.steps[F.i];if(!s||s.a!=='hold')return;const H=F.hold;
-  if(s.w==='both'){if(H.her&&H.him&&n-Math.max(H.her,H.him)>1200)advance()}else if(H[s.w]&&n-H[s.w]>1200)advance()}
+  if(s.w==='both'){if(H.her&&H.him&&n-Math.max(H.her,H.him)>800)advance()}else if(H[s.w]&&n-H[s.w]>800)advance()}
 function advance(){F.i++;F.hold={her:0,him:0};send({t:'fxs',i:F.i});fxStep()}
 function fxStep(){F.stepT=performance.now();buzz(40);burst(270,300,GOLD,22,180,true);
-  if(F.i>=F.def.steps.length){F.done=true;F.endT=performance.now();sfx.win();for(let i=0;i<5;i++)setTimeout(()=>burst(270,300,i%2?COL.her:GOLD,30,260,true),i*220);const i=stepIdx;if(isHost)setTimeout(()=>{if(stepIdx===i)goStep(i+1)},7000)}else sfx.good()}
+  if(F.i>=F.def.steps.length){F.done=true;F.endT=performance.now();sfx.win();for(let i=0;i<5;i++)setTimeout(()=>burst(270,300,i%2?COL.her:GOLD,30,260,true),i*220);const i=stepIdx;if(isHost)setTimeout(()=>{if(stepIdx===i)goStep(i+1)},4200)}else sfx.good()}
 function crackPts(j,N){const pts=[];const x0=200+((j+.5)/N)*140+(hh(j*7)-.5)*20;let x=x0,y=205+hh(j)*20;pts.push([x,y]);for(let i=0;i<7;i++){x+=(hh(j*13+i)-.5)*34;y+=24+hh(j*5+i)*8;pts.push([x,y])}return pts}
 function kintsugi(cx0,cy,s,filled,N,t,anim){const y=cy-s/2;glow(cx0,cy,s*.95,'rgba(230,194,122,.3)',.3+.5*filled/N);
   cx.save();heartPath(cx0,y,s);const g=cx.createLinearGradient(cx0-s/2,0,cx0+s/2,0);g.addColorStop(0,'#c98a86');g.addColorStop(.5,'#e7aaa3');g.addColorStop(.5,'#eedcbc');g.addColorStop(1,'#d2b783');cx.fillStyle=g;cx.fill();cx.clip();
@@ -993,7 +996,7 @@ function drawFix(t){if(!F)return;const n=performance.now();fixTick(n);const D=F.
   if(!F.done){for(let j=0;j<F.i;j++){cx.save();cx.globalAlpha=.8;cx.textAlign='center';cx.fillStyle=PAPER2;cx.shadowColor='rgba(40,10,30,.9)';cx.shadowBlur=8;cx.font='italic 400 16px "Cormorant Garamond", serif';cx.fillText('✓ '+D.steps[j].s.replace(/<[^>]+>/g,''),270,452+j*22-(F.i>3?(F.i-3)*22:0));cx.restore()}
     const s=D.steps[F.i];const col=s.w==='both'?GOLD:COL[s.w];const cy=600;cx.save();cx.fillStyle='rgba(12,7,12,.72)';cx.strokeStyle=col;cx.lineWidth=1.5;cx.beginPath();cx.roundRect(40,cy-50,460,118,16);cx.fill();cx.stroke();
     caps((s.w==='both'?'BOTH OF YOU':s.w==='her'?'HER':'HIM')+' · '+(s.a==='tap'?'TAP':'HOLD'),270,cy-24,col,12);cx.textAlign='center';cx.fillStyle=PAPER2;cx.font='italic 500 22px "Cormorant Garamond", serif';wrapText(s.s,270,cy+8,420,26);
-    if(s.a==='hold'){const who=s.w==='both'?['her','him']:[s.w];who.forEach((r,i)=>{const h=F.hold[r],q=h?Math.min(1,(n-h)/1200):0,x=who.length>1?(i?330:210):270;cx.strokeStyle='rgba(255,255,255,.15)';cx.lineWidth=4;cx.beginPath();cx.arc(x,cy+46,12,0,7);cx.stroke();cx.strokeStyle=COL[r];cx.beginPath();cx.arc(x,cy+46,12,-Math.PI/2,-Math.PI/2+q*Math.PI*2);cx.stroke()})}
+    if(s.a==='hold'){const who=s.w==='both'?['her','him']:[s.w];who.forEach((r,i)=>{const h=F.hold[r],q=h?Math.min(1,(n-h)/800):0,x=who.length>1?(i?330:210):270;cx.strokeStyle='rgba(255,255,255,.15)';cx.lineWidth=4;cx.beginPath();cx.arc(x,cy+46,12,0,7);cx.stroke();cx.strokeStyle=COL[r];cx.beginPath();cx.arc(x,cy+46,12,-Math.PI/2,-Math.PI/2+q*Math.PI*2);cx.stroke()})}
     else{cx.globalAlpha=.5+.5*Math.sin(t/250);cx.fillStyle=col;cx.beginPath();cx.arc(270,cy+48,5,0,7);cx.fill()}cx.restore()}
   else{const e=Math.min(1,(n-F.endT)/1400);fixArt(D.art,t,e);cx.save();cx.globalAlpha=Math.min(1,(n-F.endT)/900);cx.textAlign='center';cx.fillStyle='#3a1428';cx.font='italic 600 26px "Cormorant Garamond", serif';wrapText(D.reveal,270,630,460,30);cx.restore();caps('STRONGER NOW',270,705,'#7a2f4a',11)}}
 (()=>{const bw=$('bw'),FP={};bw.addEventListener('pointerdown',e=>{if(view!=='fix'||scene)return;const p=cpt(e);const r=mode==='net'?me:(p.x<270?'her':'him');FP[e.pointerId]=r;fixInput(r,true)});
@@ -1133,6 +1136,107 @@ function respawn(r){if(!G)return;const at=q=>(G.safe&&G.safe[q])||G.start[q];G.p
 function doPing(r,x,y){if(!G||x<0||y<0||x>=W||y>=H)return;PINGS.push({x,y,r,t:performance.now()});send({t:'ping',x,y,r});sfx.good();buzz(18);STATS.pings++}
 $('dots').addEventListener('click',e=>{const el=e.target.closest('i');if(!el)return;if(!isHost){tip('Only the host can jump between stages.');return}const j=[...$('dots').children].indexOf(el);let i=MILESTONES[j],reach=0;try{reach=+(localStorage.getItem('th_max')||0)}catch(_){}
   if(i>Math.max(reach,stepIdx)){tip('You haven’t reached that one yet 😌');return}if(STEPS[i-1]&&STEPS[i-1].k==='scene')i--;if(scene){scene=null;$('skip').hidden=true}goStep(i)});
+
+
+/* ================= fast pass: short stages, resolution-first story, new characters, chocolate tug ================= */
+Object.assign(STAGES.dark,{name:'Say it. Light the way.',tag:'How we make up · 1 of 6',
+  sub:'When one of you goes quiet, the other lights the way. Tap: her LIGHT shines ahead, his REPLY glows around him. Stay within 3 steps.',
+  hint:'She lights the path, he walks it. Step on the gold switch to open the gate.',gate:()=>G.latch||(G.latch=onTile('P')),
+  map:['#########','#########','#########','#..A.B..#','#..h....#','####g####','#.h..hP.#','#...h...#','#.h...h.#','#.a.b...#','#########','#########','#########']});
+Object.assign(STAGES.mirror,{name:'Say what you mean.',tag:'How we make up · 2 of 6',
+  sub:'“Enjoy” meant “I miss you”. You move in mirror. Collect your word (pink hers, gold his) and the gates open.',
+  hint:'Walls stop one of you, not both. Grab “miss” and “you”.',
+  map:['#########','#########','#########','#.A...B.#','###g#g###','#.......#','#l.#....#','#.....m.#','#..a.b..#','#########','#########','#########','#########']});
+Object.assign(STAGES.storm,{name:'Wait out the storm. Together.',tag:'How we make up · 3 of 6',
+  sub:'Stay under his umbrella when the wind blows. He CARRIES her over thorns. The bridge holds one, then she comes TO HIM.',
+  hint:'Tap next to her to carry. Cross the bridge alone. Then she taps to appear beside him.',
+  map:['#########','#########','#..B.A..#','#oooTooo#','#.......#','#ttttttt#','#.......#','#..a.b..#','#########','#########','#########','#########','#########']});
+Object.assign(STAGES.magnet,{name:'Both say sorry. Same time.',tag:'How we make up · 4 of 6',
+  sub:'No ego. His PUSH sends her over the gap, her PULL brings him across. Then stand on both gold switches at once.',
+  hint:'Stand right behind her and PUSH. She steps up, lines up, and PULLS. Then both switches together.',
+  map:['#########','#########','#...A.B.#','#####g###','#.Q...Q.#','#.......#','#ooooooo#','#.......#','#a.b....#','#########','#########','#########','#########']});
+Object.assign(STAGES.seed,{name:'Let the ghussa out.',tag:'How we make up · 5 of 6',
+  sub:'“Jitna ghussa, usay zyada pyaar.” She stands on the HEAVY switch. He RAINS on her till she’s big enough to open the door.',
+  hint:'Her on the HEAVY switch. Him two steps away, facing her: tap to rain.',gate:()=>G.latch||(G.latch=(isBig()&&gt(G.pos.her.x,G.pos.her.y)==='H')),
+  map:['#########','#########','#########','#..A.B..#','####g####','#.......#','#.H.....#','#..a.b..#','#########','#########','#########','#########','#########']});
+
+/* ---- characters: a stylish girl and boy ---- */
+function blob(r,px,py,t,cine,fx,fy,face){const m=cine?{t:-1e9,dx:fx||0,dy:fy||0,jump:0}:mv[r],age=(t-m.t)/1000,her=r==='her',c=COL[r];
+  let sx=1,sy=1;if(age<.12){const k=age/.12;if(m.dx){sx=1+.16*(1-k);sy=1-.1*(1-k)}else if(m.dy){sy=1+.16*(1-k);sx=1-.1*(1-k)}}
+  else if(age<.32){const k=(age-.12)/.2,w=Math.sin(k*Math.PI)*(1-k);sy=1-.1*w;sx=1+.08*w}
+  const idle=Math.sin(t/420+(her?0:1.7)),bob=idle*1.2;
+  const jd=m.jump?.55:.14,hop=age<jd?Math.sin(age/jd*Math.PI)*(m.jump?70:7):0;
+  let mood='';if(!cine&&G&&view==='stage'&&!scene){if(G.fallR===r&&t-G.fallT<900)mood='oh';else if(onGoalTile(r))mood='joy'}
+  const joyHop=mood==='joy'?Math.abs(Math.sin(t/170))*6:0,walk=age<.3?Math.sin(age/.3*Math.PI*2):0;
+  cx.save();cx.translate(px,py+6);cx.fillStyle='rgba(0,0,0,.42)';cx.beginPath();cx.ellipse(0,17,14*sx*(1-(hop+joyHop)/140),4.5,0,0,7);cx.fill();cx.restore();
+  glow(px,py,34,her?'rgba(239,184,177,.55)':'rgba(243,227,195,.5)',.4);
+  cx.save();cx.translate(px,py-hop-joyHop+bob+2);cx.scale(sx,sy);cx.lineCap='round';cx.lineJoin='round';
+  const skin=her?'#f0c3a4':'#e3b08c',hair=her?'#2b1914':'#231712';
+  if(her){
+    cx.fillStyle=hair;cx.beginPath();cx.moveTo(-14,-12);cx.bezierCurveTo(-17,-30,17,-30,14,-12);cx.bezierCurveTo(17,0,15,10,11+walk,13);cx.lineTo(-11+walk,13);cx.bezierCurveTo(-15,10,-17,0,-14,-12);cx.fill();
+    cx.fillStyle='#c2185b';cx.beginPath();cx.ellipse(-4,19+walk*1.5,3.6,2.2,0,0,7);cx.ellipse(4,19-walk*1.5,3.6,2.2,0,0,7);cx.fill();
+    const dg=cx.createLinearGradient(0,2,0,18);dg.addColorStop(0,'#f7c6c0');dg.addColorStop(1,'#e58a86');cx.fillStyle=dg;cx.beginPath();cx.moveTo(-7,3);cx.quadraticCurveTo(0,0,7,3);cx.lineTo(12,17);cx.quadraticCurveTo(0,20,-12,17);cx.closePath();cx.fill();
+    cx.strokeStyle='#f3cf7a';cx.lineWidth=1.4;cx.beginPath();cx.moveTo(-11.5,16.2);cx.quadraticCurveTo(0,19,11.5,16.2);cx.stroke();cx.beginPath();cx.moveTo(-3.5,3);cx.quadraticCurveTo(0,6.5,3.5,3);cx.stroke();
+    cx.strokeStyle='rgba(244,214,140,.92)';cx.lineWidth=3.4;cx.beginPath();cx.moveTo(-7,3.5);cx.quadraticCurveTo(-1,9,9,14);cx.stroke();
+    cx.fillStyle=skin;cx.beginPath();cx.arc(-10,9+walk,2.6,0,7);cx.arc(10.5,9-walk,2.6,0,7);cx.fill();
+  }else{
+    cx.fillStyle='#fbfbf7';cx.beginPath();cx.ellipse(-4.5,19.5+walk*1.5,4,2.4,0,0,7);cx.ellipse(4.5,19.5-walk*1.5,4,2.4,0,0,7);cx.fill();
+    cx.fillStyle='#2b2733';cx.beginPath();cx.roundRect(-7.5,11,15,8,3);cx.fill();
+    cx.fillStyle='#fbf7ef';cx.beginPath();cx.roundRect(-9,2,18,12.5,5);cx.fill();
+    cx.fillStyle='#b99a5e';cx.beginPath();cx.roundRect(-10.5,2,7,13.5,[5,2,2,4]);cx.fill();cx.beginPath();cx.roundRect(3.5,2,7,13.5,[2,5,4,2]);cx.fill();cx.strokeStyle='rgba(60,40,10,.35)';cx.lineWidth=1;cx.beginPath();cx.moveTo(-3.5,3);cx.lineTo(-3.5,15);cx.moveTo(3.5,3);cx.lineTo(3.5,15);cx.stroke();
+    cx.fillStyle='#b99a5e';cx.beginPath();cx.arc(-11.5,8+walk,3,0,7);cx.arc(11.5,8-walk,3,0,7);cx.fill();cx.fillStyle=skin;cx.beginPath();cx.arc(-11.8,11+walk,2.3,0,7);cx.arc(11.8,11-walk,2.3,0,7);cx.fill();}
+  const hg=cx.createRadialGradient(-4,-13,2,0,-9,14);hg.addColorStop(0,her?'#fbd8c0':'#f0c4a2');hg.addColorStop(1,skin);cx.fillStyle=hg;cx.beginPath();cx.arc(0,-9,12.5,0,7);cx.fill();
+  if(!her){cx.fillStyle='rgba(50,32,24,.2)';cx.beginPath();cx.arc(0,-9,12.5,Math.PI*.08,Math.PI*.92);cx.quadraticCurveTo(0,-4,12.3,-7.9);cx.fill()}
+  cx.fillStyle=hair;
+  if(her){cx.beginPath();cx.moveTo(-13,-8);cx.bezierCurveTo(-15,-25,13,-27,13.5,-9);cx.bezierCurveTo(9,-15,2,-18,-3,-17.5);cx.bezierCurveTo(-8,-17,-11,-13,-13,-8);cx.fill();
+    cx.fillStyle='#f3cf7a';cx.beginPath();cx.arc(-12.6,-3.5,1.7,0,7);cx.arc(12.6,-3.5,1.7,0,7);cx.fill();cx.beginPath();cx.arc(-12.6,-.6,1.1,0,7);cx.arc(12.6,-.6,1.1,0,7);cx.fill()}
+  else{cx.beginPath();cx.moveTo(-12.6,-9);cx.bezierCurveTo(-14,-22,-6,-27,3,-26);cx.bezierCurveTo(10,-25.5,14,-19,12.6,-9.5);cx.bezierCurveTo(11,-14,7,-17,1,-16.5);cx.bezierCurveTo(-5,-16,-10,-14,-12.6,-9);cx.fill()}
+  const fdx=face?face.x:Math.max(-1,Math.min(1,m.dx||0)),fdy=face?face.y:Math.max(-1,Math.min(1,m.dy||0));const lx=fdx*1.8,ly=fdy*1.3;const blink=((t/1000+(her?0:1.3))%4)<.12;
+  cx.fillStyle='#1a1414';cx.strokeStyle='#1a1414';cx.lineWidth=1.5;const ey=-8.5+ly;
+  if(mood==='joy'){cx.beginPath();cx.arc(-4.6+lx,ey+1,2.6,Math.PI*1.1,Math.PI*1.9);cx.stroke();cx.beginPath();cx.arc(4.6+lx,ey+1,2.6,Math.PI*1.1,Math.PI*1.9);cx.stroke()}
+  else if(blink&&mood!=='oh'){cx.fillRect(-7+lx,ey,4.6,1.4);cx.fillRect(2.4+lx,ey,4.6,1.4)}
+  else{const er=mood==='oh'?3.1:2.6;cx.beginPath();cx.arc(-4.6+lx,ey,er,0,7);cx.arc(4.6+lx,ey,er,0,7);cx.fill();cx.fillStyle='#fff';cx.beginPath();cx.arc(-3.8+lx,ey-.9,.95,0,7);cx.arc(5.4+lx,ey-.9,.95,0,7);cx.fill();
+    cx.strokeStyle='#1a1414';if(her){cx.lineWidth=1;cx.beginPath();cx.moveTo(-7+lx,ey-1.4);cx.lineTo(-8.8+lx,ey-3);cx.moveTo(7+lx,ey-1.4);cx.lineTo(8.8+lx,ey-3);cx.stroke()}
+    else{cx.lineWidth=1.5;cx.beginPath();cx.moveTo(-7+lx,ey-4.4);cx.lineTo(-2.4+lx,ey-4);cx.moveTo(2.4+lx,ey-4);cx.lineTo(7+lx,ey-4.4);cx.stroke()}}
+  cx.fillStyle=her?'rgba(232,110,120,.42)':'rgba(214,140,110,.22)';cx.beginPath();cx.arc(-8,-4.6,2.4,0,7);cx.arc(8,-4.6,2.4,0,7);cx.fill();
+  cx.strokeStyle='#7a2f3a';cx.fillStyle='#7a2f3a';cx.lineWidth=1.3;
+  if(mood==='oh'){cx.beginPath();cx.arc(lx,-2.4+ly,1.9,0,7);cx.fill()}else if(mood==='joy'){cx.beginPath();cx.arc(lx,-4.2+ly,3.2,0,Math.PI);cx.fill()}else{cx.beginPath();cx.arc(lx,-4.8+ly,2.8,Math.PI*.2,Math.PI*.8);cx.stroke()}
+  cx.restore();
+  if(face&&!cine){cx.save();cx.translate(px+face.x*28,py+face.y*28-hop);cx.rotate(Math.atan2(face.y,face.x));cx.fillStyle=c;cx.globalAlpha=.75;cx.beginPath();cx.moveTo(6,0);cx.lineTo(-3,-5);cx.lineTo(-3,5);cx.fill();cx.restore()}}
+
+/* ---- The Last Croissant: chocolate decides it ---- */
+function tug(r){if(!M||M.phase!=='go')return;const n=performance.now(),b=M.boost&&M.boost.until>n?M.boost.r:null;const k=b===r?3:b?0:1;if(!k){return}M.v+=(r==='her'?-1:1)*k;tugSync();if(Math.abs(M.v)>=12)miniWin(M.v<0?'her':'him')}
+function tugSync(){const n=performance.now();send({t:'tgs',v:M.v,ch:M.ch&&M.ch.until>n?{x:M.ch.x,y:M.ch.y,ms:M.ch.until-n}:null,b:M.boost&&M.boost.until>n?{r:M.boost.r,ms:M.boost.until-n}:null,sd:M.sd?1:0})}
+function tugEvents(dt){if(!isHost||!M||M.phase!=='go')return;const n=performance.now();M.go0=M.go0||n;M.ev=(M.ev==null?1.1:M.ev)-dt;
+  if(M.ev<=0&&!(M.ch&&M.ch.until>n)){M.ev=1.5+Math.random()*.8;M.ch={x:110+Math.random()*320,y:200+Math.random()*380,until:n+1500};sfx.plant();tugSync()}
+  if(!M.sd&&n-M.go0>9000){M.sd=1;tip('<b>Sudden death!</b> Next chocolate wins it all 🍫');send({t:'btip',h:'<b>Sudden death!</b> Next chocolate wins it all 🍫'});tugSync()}}
+function chocoGrab(r){if(!isHost||!M||M.phase!=='go'||!M.ch)return;const n=performance.now();if(M.ch.until<n)return;M.ch=null;M.boost={r,until:n+1700};M.v+=(r==='her'?-4:4);sfx.good();shake=10;
+  const msg=`<b>${r==='her'?'She':'He'} got the chocolate 🍫</b> Triple pull!`;tip(msg);send({t:'btip',h:msg});tugSync();if(M.sd||Math.abs(M.v)>=12)miniWin(r)}
+function tugTap(r,p){if(!M||M.id!=='tug'||M.phase!=='go')return;if(mode==='net'&&r!==me)return;const c=M.ch;if(c&&c.until>performance.now()&&Math.hypot(p.x-c.x,p.y-c.y)<56){if(isHost)chocoGrab(r);else send({t:'tgg',r})}}
+function tugOverlay(t){if(!M||M.id!=='tug'||M.phase==='count')return;const n=performance.now(),c=M.ch;
+  if(c&&c.until>n){const q=(c.until-n)/1500,s=1+Math.sin(t/90)*.08;glow(c.x,c.y,60,'rgba(255,214,150,.9)',.5);cx.save();cx.translate(c.x,c.y);cx.scale(s,s);cx.rotate(Math.sin(t/200)*.15);cx.fillStyle='#5a3120';cx.beginPath();cx.roundRect(-26,-20,52,40,7);cx.fill();cx.strokeStyle='#3a1d10';cx.lineWidth=2;cx.beginPath();cx.moveTo(-9,-20);cx.lineTo(-9,20);cx.moveTo(9,-20);cx.lineTo(9,20);cx.moveTo(-26,0);cx.lineTo(26,0);cx.stroke();cx.fillStyle='rgba(255,255,255,.18)';cx.fillRect(-22,-16,10,5);cx.restore();
+    cx.strokeStyle='#f3cf7a';cx.lineWidth=3;cx.beginPath();cx.arc(c.x,c.y,38,-Math.PI/2,-Math.PI/2+q*Math.PI*2);cx.stroke();cx.fillStyle='#f6ecdf';cx.font='600 12px Jost, sans-serif';cx.textAlign='center';cx.fillText('TAP!',c.x,c.y+56);cx.textAlign='left'}
+  const b=M.boost;if(b&&b.until>n){const her=b.r==='her';cx.save();cx.globalAlpha=.16+.08*Math.sin(t/60);cx.fillStyle='#7a4a2a';cx.fillRect(her?0:270,0,270,780);cx.restore();cx.fillStyle=COL[b.r];cx.font='italic 600 26px "Cormorant Garamond", serif';cx.textAlign='center';cx.fillText('chocolate power ×3',her?135:405,120);cx.textAlign='left'}
+  if(M.sd&&M.phase==='go'){cx.fillStyle='#ffb0a8';cx.font='600 12px Jost, sans-serif';cx.textAlign='center';cx.fillText('S U D D E N   D E A T H',270,90);cx.textAlign='left'}}
+
+/* ---- stuck? skip ---- */
+setInterval(()=>{const b=$('bSkipSt');if(!b)return;const show=view==='stage'&&G&&G.playing&&performance.now()-(G.playT||0)>70000;b.hidden=!show},1500);
+$('bSkipSt').onclick=()=>{if(isHost){tip('Skipped. On to the making up 🤍');goStep(stepIdx+1)}else{send({t:'skipreq'});tip('Asked your other half to skip.')}};
+
+/* ---- resolution-first story ---- */
+(()=>{const S=(id,txt,d)=>{STORY[id]=[{...STORY[id][0],txt,d}]};
+ S('f1','7 July. He went quiet. She said it anyway.',3800);S('f2','July. “Enjoy 🙂” She meant “I miss you”.',3800);S('f3','6 August. Words in the heat of the storm.',3800);
+ S('f4','2 September. Too proud. Both of us.',3800);S('f5','6 October. Rage bait 😤',3800);S('f6','21 October. “I need space.”',4000);
+ STORY.vows=[STORY.vows[1],STORY.vows[2]];
+ STORY.prologue[1].txt='3,000 km. One screen. Six fights. Six ways back.';
+ const F3=(id,title,steps,reveal)=>{FIX[id].title=title;FIX[id].steps=steps;FIX[id].reveal=reveal};
+ F3('f1','Say it. Light the way.',[{w:'her',a:'tap',s:'She said it: “I am hurt.”'},{w:'him',a:'hold',s:'He listened, then fixed it quietly.'},{w:'both',a:'hold',s:'Together, they set the date.'}],'Quiet doesn’t mean gone. He was fixing it.');
+ F3('f2','Say what you mean.',[{w:'him',a:'tap',s:'He noticed: “kuch to garbar hai.”'},{w:'her',a:'tap',s:'She stopped hinting.'},{w:'both',a:'hold',s:'And they just said it.'}],'“I miss you. Infinite.”');
+ F3('f3','Wait out the storm.',[{w:'him',a:'hold',s:'“Hold on till the storm calms down.”'},{w:'her',a:'tap',s:'“I’m sorry. Promise.”'},{w:'both',a:'hold',s:'“I can’t imagine my life without you.”'}],'Then: leave approved ✈️');
+ F3('f4','Both say sorry.',[{w:'him',a:'tap',s:'“Sorry for hurting you.”'},{w:'her',a:'tap',s:'“Sorry for bringing it up again.”'},{w:'both',a:'hold',s:'No ego. Same time.'}],'“No matter what the fight is, we always resolve it.”');
+ F3('f5','Let the ghussa out.',[{w:'her',a:'tap',s:'“It hurts when you say such things.”'},{w:'him',a:'hold',s:'“I don’t want to fight you. You’re my wife.”'},{w:'both',a:'hold',s:'And the ghussa melted.'}],'“Jitna ghussa ata hai, usay zyada pyaar ata hai.”');
+ F3('f6','Space. Then closer.',[{w:'him',a:'hold',s:'He gave her space.'},{w:'her',a:'tap',s:'“Let’s forget it. I will never leave.”'},{w:'both',a:'hold',s:'“Misunderstanding ke baad hi understanding achi banti hai.”'}],'“Chahay jitna bhi naraz ho, apkay begair nahi raha jata.”');
+ STORY.end[0].txt='Six fights. Six ways back. Every crack, gold.'})();
 
 </script>
 </body>
