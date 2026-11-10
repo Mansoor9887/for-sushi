@@ -448,7 +448,7 @@ document.addEventListener('keydown',e=>{if($('game').hidden||document.activeElem
   if(view==='boss'&&!e.repeat){if(e.key===' '||e.key==='Enter'){e.preventDefault();bpow(mode==='local'?'her':me)}if(e.key==='e'||e.key==='q')bpow(mode==='local'?'him':me)}});
 document.addEventListener('keyup',e=>{delete keysDown[e.key]});
 (()=>{const bw=$('bw'),P={};
-  const near=p=>{if(mode==='net')return me;if(view==='stage'&&G){const d=r=>Math.hypot(G.rp[r].x*T+T/2-p.x,G.rp[r].y*T+T/2-p.y);return d('her')<=d('him')?'her':'him'}
+  const near=p=>{if(mode==='net')return me;if(view==='stage'&&G){if(G.carry)return 'him';const d=r=>Math.hypot(G.rp[r].x*T+T/2-p.x,G.rp[r].y*T+T/2-p.y);return d('her')<=d('him')?'her':'him'}
     if(view==='boss'&&B)return Math.abs(B.p.her.x-p.x)<=Math.abs(B.p.him.x-p.x)?'her':'him';return p.x<270?'her':'him'};
   bw.addEventListener('pointerdown',e=>{if(!['stage','boss','mini'].includes(view)||scene)return;const p=cpt(e);const r=near(p);P[e.pointerId]={r,ox:p.x,oy:p.y,sx:p.x,sy:p.y,t:performance.now(),moved:0};
     if(view==='mini'&&M&&M.id==='tug'){miniPress(r);P[e.pointerId].tug=1}});
