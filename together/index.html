@@ -304,7 +304,7 @@ const STEPS=[
  {k:'scene',id:'f3'},{k:'stage',id:'cy1'},{k:'stage',id:'storm'},{k:'fix',id:'f3'},{k:'mini',id:'mehndi'},
  {k:'scene',id:'f5'},{k:'stage',id:'seed'},{k:'stage',id:'vine'},{k:'fix',id:'f5'},{k:'mini',id:'hockey'},
  {k:'scene',id:'f6'},{k:'boss'},{k:'fix',id:'f6'},
- {k:'scene',id:'end'},{k:'final'}];
+ {k:'scene',id:'end'},{k:'scene',id:'note'},{k:'final'}];
 const MILESTONES=STEPS.map((s,i)=>i).filter(i=>['stage','mini','boss'].includes(STEPS[i].k));
 function dots(){const d=$('dots');if(d.children.length!==MILESTONES.length)d.innerHTML=MILESTONES.map(()=>'<i></i>').join('');let rc=0;try{rc=+(localStorage.getItem('th7_max')||0)}catch(_){}[...d.children].forEach((e,j)=>{e.classList.toggle('on',MILESTONES[j]<stepIdx);e.classList.toggle('rc',isHost&&MILESTONES[j]<=rc&&MILESTONES[j]>=stepIdx)})}
 
@@ -1257,6 +1257,10 @@ THEME.pp1=THEME.magnet;THEME.cy1=THEME.storm;THEME.vine=THEME.seed;
 (()=>{STORY.prologue[1].txt='3,000 km. One screen. And for every fight, a way back.';STORY.end[0].txt='Every fight, a way back. Every crack, gold.';
  Object.assign(FIX.f1,{title:'Reach for each other.',steps:[{w:'her',a:'tap',s:'She said it: “I am hurt.”'},{w:'him',a:'hold',s:'He listened, and fixed it quietly.'},{w:'both',a:'hold',s:'“Sorry.” “Sorry.” No ego, same time.'}],reveal:'“No matter what the fight is, we always resolve it.”',art:'pact'});
  Object.assign(FIX.f3,{title:'Carry me through.'});Object.assign(FIX.f5,{title:'Let it rain.'});})();
+/* closing note, in his words */
+const NOTE=['Sushi,','I made this game out of our fights.','Not to remember them. To remember','what we did after every single one.','','You said it. I listened.','I went quiet. You lit the way.','One of us pulled, the other came.','','Nothing here works unless we both','do our part. That’s us.','','Kia laraiyan thi… aur har larai ke baad','hum pehle se zyada “hum” ban gaye.','','So fight with me as much as you want.','I’ll always find my way back to you ♥️'];
+STORY.note=[{d:30000,title:1,txt:'',f:(t,k)=>{velvet(t);starsF(t,30,620);frame(1);const n=NOTE.length,p=Math.min(1,k*1.9)*n;cx.save();cx.textAlign='center';
+  NOTE.forEach((l,i)=>{const a=Math.max(0,Math.min(1,p-i));if(!a||!l)return;cx.globalAlpha=a;const y=140+i*29+(1-a)*8;if(i===0){cx.fillStyle=GOLD;cx.font='italic 600 30px "Cormorant Garamond", serif'}else{cx.fillStyle=PAPER2;cx.font=(i>=n-2?'italic 600 ':'italic 500 ')+'22px "Cormorant Garamond", serif'}cx.fillText(l,270,y)});cx.restore()}}];
 
 </script>
 </body>
