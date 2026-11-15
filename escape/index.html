@@ -1,0 +1,307 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
+<title>Split · Escape for Two</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@300;400;500;600&display=swap">
+<style>
+:root{--paper:#f6ecdf;--silver:#a59c95;--gold:#e6c27a;--her:#efb8b1;--him:#9fd0e6;--line:#3a2a30;--display:"Cormorant Garamond",Georgia,serif;--body:"Jost","Segoe UI",system-ui,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:#09070a;color:var(--paper);font-family:var(--body);font-weight:300;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+body{background:radial-gradient(ellipse 90% 40% at 50% -5%,rgba(230,194,122,.12),transparent 70%),#09070a}
+.screen{max-width:480px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:12px;min-height:100%}.screen[hidden]{display:none}
+.caps{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);text-align:center}
+h1{font-family:var(--display);font-style:italic;font-weight:500;font-size:clamp(46px,14vw,64px);margin:4px 0 0;text-align:center;line-height:1}
+p.sub{color:var(--silver);text-align:center;font-size:15px;line-height:1.5;margin:0 auto;max-width:34ch}
+.btn{font:inherit;font-size:16px;padding:14px 18px;border-radius:999px;border:1px solid rgba(230,194,122,.3);background:rgba(25,18,22,.8);color:var(--paper);cursor:pointer;width:100%}
+.btn.pri{background:linear-gradient(135deg,#f6e3c3,#e6c27a);color:#1a1014;border:0}.btn.her{background:linear-gradient(135deg,#f7cdc7,#e79c94);color:#1a1014;border:0}.btn.him{background:linear-gradient(135deg,#d6eef7,#9fd0e6);color:#0d1a20;border:0}
+.btn:active{transform:scale(.97)}
+input.code{font:500 28px var(--body);letter-spacing:.3em;text-align:center;text-transform:uppercase;padding:12px;border-radius:14px;border:1px solid var(--line);background:#140f12;color:var(--paper);width:100%}
+.codebig{font:500 46px var(--body);letter-spacing:.25em;text-align:center;color:var(--gold)}
+.status{text-align:center;color:var(--silver);font-size:14px;min-height:1.4em}
+.levels{display:flex;flex-direction:column;gap:10px}
+.lv{display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:16px;border:1px solid var(--line);background:rgba(25,18,22,.75);cursor:pointer;text-align:left;color:var(--paper);font:inherit}
+.lv b{font-family:var(--display);font-style:italic;font-weight:600;font-size:22px;display:block}.lv span{font-size:13px;color:var(--silver)}.lv i{font-style:normal;font:600 13px var(--body);color:var(--gold);min-width:22px}
+.lv .tm{margin-left:auto;font-size:12px;color:#8fd19e}
+#game{max-width:520px;margin:0 auto;height:100%;display:flex;flex-direction:column;padding:6px 8px 8px;gap:6px}#game[hidden]{display:none}
+.top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--silver)}.top b{color:var(--paper);font-weight:500}.top .sp{flex:1}
+.top button{font:inherit;font-size:12px;background:none;border:1px solid var(--line);color:var(--paper);border-radius:999px;padding:5px 10px}
+.board{position:relative;flex:1;min-height:0;display:flex;justify-content:center}
+#cv{height:100%;max-width:100%;aspect-ratio:540/900;border-radius:14px;touch-action:none;box-shadow:0 0 0 1px rgba(230,194,122,.25),0 14px 40px rgba(0,0,0,.6)}
+.bar{display:flex;gap:6px}
+.bar input{flex:1;font:inherit;font-size:15px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:#140f12;color:var(--paper);min-width:0}
+.bar button{font:inherit;font-size:14px;border-radius:999px;border:1px solid var(--line);background:#1a1216;color:var(--paper);padding:0 12px}
+#log{display:flex;flex-direction:column;gap:3px;max-height:68px;overflow:auto;font-size:13px}
+#log div{padding:2px 10px;border-radius:10px;max-width:85%}#log .her{align-self:flex-start;background:rgba(239,184,177,.15);color:var(--her)}#log .him{align-self:flex-end;background:rgba(159,208,230,.15);color:var(--him)}#log .sys{align-self:center;color:var(--silver);font-size:12px}
+.shake{animation:sh .45s}@keyframes sh{20%{transform:translate(-8px,2px)}40%{transform:translate(7px,-3px)}60%{transform:translate(-5px,2px)}80%{transform:translate(3px,-1px)}}
+</style></head><body>
+<section class="screen" id="home"><div class="caps" style="margin-top:28px">An escape game for two</div><h1>Split</h1>
+<p class="sub">Five rooms, each split down the middle. You can only touch your half. The answer to your lock is always on the other side.</p>
+<div style="height:8px"></div><button class="btn pri" id="bCreate">Create a room</button><button class="btn" id="bJoin">Join a room</button><button class="btn" id="bLocal">Test on one phone</button></section>
+<section class="screen" id="create" hidden><div class="caps" style="margin-top:28px">Your room</div><p class="sub">Which half are you?</p>
+<button class="btn her" id="asHer">I’m Her · top half</button><button class="btn him" id="asHim">I’m Him · bottom half</button><div class="codebig" id="code"></div><div class="status" id="cStatus"></div><button class="btn" data-back>Back</button></section>
+<section class="screen" id="join" hidden><div class="caps" style="margin-top:28px">Join</div><p class="sub">Type the code from your other half’s phone.</p><input class="code" id="jCode" maxlength="4" autocomplete="off"><button class="btn pri" id="bGo">Join</button><div class="status" id="jStatus"></div><button class="btn" data-back>Back</button></section>
+<section class="screen" id="pick" hidden><div class="caps" style="margin-top:22px">Choose a room</div><p class="sub" id="pickSub"></p><div class="levels" id="levels"></div></section>
+<section id="game" hidden><div class="top"><button id="bMenu">‹ Rooms</button><b id="lvName"></b><span class="sp"></span><span id="clock">0:00</span><button id="bHint">Hint</button><button id="bKnock">Knock</button></div>
+<div class="board"><canvas id="cv" width="540" height="900"></canvas></div><div id="log"></div>
+<form class="bar" id="chatF"><input id="chatI" placeholder="Tell your other half what you see…" autocomplete="off" maxlength="140"><button>Send</button></form></section>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+const $=i=>document.getElementById(i),cv=$('cv'),cx=cv.getContext('2d'),W=540,H=900,HH=450;
+let mode=null,me='her',isHost=true,conn=null,peer=null,S=null,LVi=-1,view='menu',lastSent=0,modal=null,shakeT=0,flash=null;
+const done=(()=>{try{return JSON.parse(localStorage.getItem('split_done')||'{}')}catch(_){return{}}})();
+const GOLD='#e6c27a',PAPER='#f6ecdf',HER='#efb8b1',HIM='#9fd0e6';
+const show=id=>['home','create','join','pick'].forEach(s=>$(s).hidden=s!==id);
+document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>show('home'));
+/* ---------- tiny audio ---------- */
+let AC=null;const tone=(f,d=.12,ty='sine',v=.15)=>{try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=ty;o.frequency.value=f;g.gain.setValueAtTime(v,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);o.connect(g).connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(_){}};
+const sfx={ok:()=>{tone(660,.12);setTimeout(()=>tone(880,.18),90)},bad:()=>tone(160,.2,'square',.08),click:()=>tone(1200,.04,'triangle',.06),open:()=>{[523,659,784,1046].forEach((f,i)=>setTimeout(()=>tone(f,.3),i*110))},knock:()=>{tone(110,.08,'square',.2);setTimeout(()=>tone(110,.08,'square',.2),140)}};
+const buzz=n=>{try{navigator.vibrate&&navigator.vibrate(n)}catch(_){}};
+/* ---------- drawing helpers ---------- */
+function rr(x,y,w,h,r,fill,stroke){cx.beginPath();cx.roundRect(x,y,w,h,r);if(fill){cx.fillStyle=fill;cx.fill()}if(stroke){cx.strokeStyle=stroke;cx.lineWidth=2;cx.stroke()}}
+function grad(y0,y1,a,b){const g=cx.createLinearGradient(0,y0,0,y1);g.addColorStop(0,a);g.addColorStop(1,b);return g}
+function txt(s,x,y,sz=14,col=PAPER,w=500,al='center',font='Jost'){cx.fillStyle=col;cx.font=(font==='C'?`italic ${w} ${sz}px "Cormorant Garamond", serif`:`${w} ${sz}px Jost, sans-serif`);cx.textAlign=al;cx.textBaseline='middle';cx.fillText(s,x,y)}
+function glow(x,y,r,col,a=.5){const g=cx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,col);g.addColorStop(1,'rgba(0,0,0,0)');cx.save();cx.globalAlpha=a;cx.fillStyle=g;cx.fillRect(x-r,y-r,r*2,r*2);cx.restore()}
+function room(y0,wallA,wallB,floor,lineCol){cx.fillStyle=grad(y0,y0+300,wallA,wallB);cx.fillRect(0,y0,W,300);cx.fillStyle=floor;cx.fillRect(0,y0+300,W,150);cx.fillStyle=lineCol;cx.fillRect(0,y0+300,W,3);for(let i=0;i<9;i++){cx.fillStyle='rgba(255,255,255,.03)';cx.fillRect(i*60,y0+303,2,147)}}
+function frameP(x,y,w,h,col=GOLD){rr(x-6,y-6,w+12,h+12,4,'#2a1d14');rr(x-6,y-6,w+12,h+12,4,null,col)}
+function hint(s){S&&(S.note={s,t:performance.now()})}
+const own=r=>mode==='local'||r===me;
+/* the partner's half: dim, and their small print is hidden */
+const vis=r=>own(r);
+const hide=(r,s)=>vis(r)?s:'···';
+/* ---------- LEVELS ---------- */
+const L=[];
+/* 1 · TWO SIDES OF THE SAME ROOM: her = 1925, him = today */
+L.push({name:'Two Sides',sub:'Same room. She’s in 1925, he’s in today.',top:'1925',bot:'TODAY',
+ init:()=>({st:0,inv:{her:null,him:null},books:[],drawer:0,tree:0,chest:0,door:0}),
+ hints:[['He: look closely at the old desk. Something is carved into it.','She: her drawer has a 3-digit lock.','The carving reads 3 1 4.'],
+  ['She has a seed now. There’s an empty pot in 1925.','Plant it. Then he should look at today’s room.','Trees grow in 100 years. Check what’s hanging on it.'],
+  ['He has a key. Today’s room has a chest.','The photo inside shows the old bookcase.','Pull the books in the order of the photo: red, blue, gold.'],
+  ['Both of you: hold the door handle at the same time.','Count down in chat: 3, 2, 1, hold.','Keep holding until it opens.']],
+ hot(S){const h=[];if(S.st===0)h.push({id:'drawer',r:'her',x:300,y:290,w:130,h:60,lock:{k:'digits',n:3},label:'locked drawer'});
+  if(S.st===1&&S.inv.her==='seed')h.push({id:'pot',r:'her',x:60,y:290,w:90,h:90,label:'empty pot'});
+  if(S.st===2&&S.inv.him!=='key')h.push({id:'treekey',r:'him',x:70,y:500,w:110,h:120,label:'the old tree'});
+  if(S.st===2&&S.inv.him==='key')h.push({id:'chest',r:'him',x:300,y:770,w:150,h:80,label:'chest'});
+  if(S.st===3)['red','blue','gold'].forEach((c,i)=>h.push({id:'book-'+c,r:'her',x:420+i*28,y:160,w:24,h:110,label:''}));
+  if(S.st===4){h.push({id:'hold',r:'her',x:165,y:120,w:120,h:200,hold:1,label:'hold the handle'});h.push({id:'hold',r:'him',x:165,y:570,w:120,h:200,hold:1,label:'hold the handle'})}return h},
+ act(S,r,id,v){if(id==='drawer'){if(v==='314'){S.st=1;S.inv.her='seed';return 'The drawer clicks open. A single seed inside.'}return 0}
+  if(id==='pot'){S.inv.her=null;S.tree=1;S.st=2;return 'She plants the seed in 1925…'}
+  if(id==='treekey'){S.inv.him='key';return 'A hundred years later, a key hangs from the tree.'}
+  if(id==='chest'){S.inv.him=null;S.chest=1;S.st=3;return 'Inside: an old photo of the bookcase. Books pulled: red, blue, gold.'}
+  if(id.startsWith('book-')){const c=id.slice(5);S.books.push(c);const want=['red','blue','gold'];for(let i=0;i<S.books.length;i++)if(S.books[i]!==want[i]){S.books=[];return -1}if(S.books.length===3){S.st=4;return 'Somewhere, a door unlocks. In both rooms.'}return 'click.'}},
+ draw(S,t){/* 1925 */room(0,'#3b2a1c','#2a1d12','#4a3018','#6b4a28');cx.fillStyle='rgba(255,220,160,.06)';cx.fillRect(0,0,W,HH);
+  frameP(320,40,120,110);cx.fillStyle='#5a4630';cx.fillRect(320,40,120,110);txt('1925',380,95,22,'#e9d3a8',500,'center','C');
+  rr(300,250,140,110,6,'#5b3a1e');rr(300,290,130,60,4,S.st>0?'#2a1a0e':'#6d4626','#8a5a30');txt(S.st>0?'open':'🔒',365,320,14,'#e9d3a8');
+  rr(60,330,90,60,10,'#7a4a2a');cx.fillStyle='#3a2414';cx.fillRect(66,320,78,14);if(S.tree){cx.fillStyle='#5fa35a';cx.beginPath();cx.ellipse(105,312,10,14,0,0,7);cx.fill()}
+  rr(410,150,110,130,4,'#4a2e18');[['red','#b33a3a'],['blue','#3a5ab3'],['gold','#c9a24a'],['g','#3e5a3a'],['b','#6a4a2a']].forEach(([c,col],i)=>{const pulled=S.books.includes(c)||S.st>3&&i<3;cx.fillStyle=col;cx.fillRect(420+i*28+(pulled?0:0),pulled?150:165,22,pulled?120:105)});
+  if(S.st>=4){glow(225,200,140,'rgba(255,220,150,.9)',.4)}
+  rr(165,110,120,215,6,S.st>=4?'#2a1a10':'#3d2716','#8a5a30');cx.fillStyle=GOLD;cx.beginPath();cx.arc(268,220,7,0,7);cx.fill();
+  /* today */room(HH,'#1e2a33','#141c22','#2a3038','#3a4a58');
+  cx.fillStyle='#bcc6cc';cx.fillRect(318,488,124,100);txt('TODAY',380,538,16,'#1e2a33',600);
+  rr(300,700,140,70,6,'#3a4048');txt(vis('him')?'carved: 3 1 4':'carved: ···',370,735,13,'#c9d3da',500);
+  if(S.tree){cx.fillStyle='#4a3a2a';cx.fillRect(115,520,26,180);cx.fillStyle='#4f8a4c';cx.beginPath();cx.arc(128,520,70,0,7);cx.fill();cx.fillStyle='#62a35e';cx.beginPath();cx.arc(100,500,40,0,7);cx.arc(160,505,38,0,7);cx.fill();
+    if(S.inv.him!=='key'&&S.st===2){cx.strokeStyle=GOLD;cx.lineWidth=2;cx.beginPath();cx.moveTo(150,560);cx.lineTo(150,585);cx.stroke();txt('🗝',150,596,20)}}
+  else{cx.strokeStyle='#5a6670';cx.lineWidth=2;cx.beginPath();cx.moveTo(100,560);cx.lineTo(120,600);cx.lineTo(108,640);cx.stroke()}
+  rr(300,780,150,70,8,S.chest?'#2a3038':'#5a4a3a','#8a7a6a');txt(S.chest?(vis('him')?'photo: red · blue · gold':'photo: ···'):'🔒 chest',375,815,13,'#e8e0d6',500);
+  rr(165,560,120,215,6,S.st>=4?'#0f1418':'#2c363e','#4a5866');cx.fillStyle='#c9d3da';cx.beginPath();cx.arc(268,670,7,0,7);cx.fill();if(S.st>=4)glow(225,660,140,'rgba(180,220,255,.9)',.35)}});
+/* 2 · THE MIRROR: his half is her room's reflection */
+L.push({name:'The Mirror',sub:'His room is her reflection. Writing only reads one way.',top:'HER ROOM',bot:'THE REFLECTION',
+ init:()=>({st:0,inv:{her:null,him:null},candle:0,arrows:''}),
+ hints:[['Her wall has strange backwards writing.','He sees it in the reflection the right way round.','He reads her: 7 2 9.'],
+  ['She has a candle now. Light it.','Lit, his reflection shows arrows on her wall.','In the mirror, up becomes down. Her arrows ↑ → → ↓ are ↓ → → ↑ for him.'],
+  ['He has a key, but it only exists in the reflection.','He taps the mirror glass to pass it through.','She uses it on her door.'],
+  ['Press your hands to the glass. Both at once.','Count down: 3, 2, 1.','Hold until it breaks.']],
+ hot(S){const h=[];if(S.st===0)h.push({id:'safe',r:'her',x:330,y:300,w:120,h:90,lock:{k:'digits',n:3},label:'safe'});
+  if(S.st===1)h.push({id:'candle',r:'her',x:80,y:300,w:70,h:90,label:'candle'});
+  if(S.st===2)h.push({id:'arrows',r:'him',x:150,y:520,w:240,h:80,lock:{k:'arrows',n:4},label:'arrow lock'});
+  if(S.st===3&&S.inv.him==='key')h.push({id:'glass',r:'him',x:0,y:450,w:540,h:60,label:'tap the glass'});
+  if(S.st===3&&S.inv.her==='key')h.push({id:'door',r:'her',x:190,y:120,w:160,h:200,label:'door'});
+  if(S.st===4){h.push({id:'hold',r:'her',x:170,y:360,w:200,h:80,hold:1});h.push({id:'hold',r:'him',x:170,y:460,w:200,h:80,hold:1})}return h},
+ act(S,r,id,v){if(id==='safe'){if(v==='729'){S.st=1;S.inv.her='candle';return 'The safe opens. A candle inside.'}return 0}
+  if(id==='candle'){S.candle=1;S.inv.her=null;S.st=2;return 'Candlelight. Something appears on the wall in the reflection.'}
+  if(id==='arrows'){if(v==='↓→→↑'){S.st=3;S.inv.him='key';return 'The mirror-lock opens. A key, but only in the reflection.'}return 0}
+  if(id==='glass'){S.inv.him=null;S.inv.her='key';return 'The key slides through the glass.'}
+  if(id==='door'){S.inv.her=null;S.st=4;return 'The door opens… onto the mirror. Press the glass together.'}},
+ draw(S,t){const drawRoom=(y0,flip,tint)=>{cx.save();if(flip){cx.translate(0,2*HH+0);cx.scale(1,-1);cx.translate(0,-HH)}
+   room(0+(flip?HH:0)-(flip?HH:0),tint[0],tint[1],tint[2],tint[3]);
+   rr(190,120,160,200,6,S.st>=4?'#120c14':'#3a2440','#8a6aa0');cx.fillStyle=GOLD;cx.beginPath();cx.arc(330,225,7,0,7);cx.fill();
+   rr(330,300,120,90,6,S.st>0?'#1a1018':'#4a3550','#7a6090');
+   rr(95,340,40,50,4,'#e8dcc8');if(S.candle){glow(115,325,90,'rgba(255,200,120,.9)',.6);cx.fillStyle='#ffd27a';cx.beginPath();cx.ellipse(115,330,5,10,0,0,7);cx.fill()}
+   cx.restore()};
+  drawRoom(0,0,['#2a1c33','#1c1224','#3a2440','#5a3a6a']);txt(S.st>0?'open':'🔒 safe',390,345,13);
+  cx.save();cx.translate(270,70);cx.scale(-1,1);txt(vis('her')?'927':'···',0,0,34,'#d9c2e8',600);cx.restore();
+  if(S.candle){const a=['↑','→','→','↓'];a.forEach((s,i)=>txt(s,40+i*30,240,26,'rgba(255,220,160,.35)',600))}
+  /* reflection */cx.save();cx.beginPath();cx.rect(0,HH,W,HH);cx.clip();cx.translate(0,2*HH);cx.scale(1,-1);
+   room(0,'#22283a','#161a28','#2a3048','#4a5a8a');rr(190,120,160,200,6,S.st>=4?'#0a0c14':'#28304a','#6a80b0');rr(330,300,120,90,6,'#2a3048','#5a6a90');rr(95,340,40,50,4,'#c8d0dc');if(S.candle)glow(115,325,90,'rgba(200,220,255,.9)',.5);cx.restore();
+  txt(vis('him')?'729':'···',270,830,34,'#c2d4f0',600);
+  if(S.candle){['↓','→','→','↑'].forEach((s,i)=>txt(s,40+i*30,660,26,vis('him')?'rgba(200,220,255,.85)':'rgba(200,220,255,.15)',600))}
+  rr(150,520,240,80,10,S.st>=3?'#141a28':'#2a3a5a','#6a80b0');txt(S.st>=3?'open':'🔒 ↕ arrow lock',270,560,14,'#c2d4f0');
+  if(S.inv.him==='key')txt('🗝  tap the glass to pass it',270,480,14,HIM);
+  cx.fillStyle='rgba(255,255,255,.35)';cx.fillRect(0,HH-2,W,4);glow(270,HH,260,'rgba(220,230,255,.6)',.25);
+  if(S.st>=4){txt('✋',230,410,40);txt('✋',310,490,40)}}});
+/* 3 · UPSTAIRS / DOWNSTAIRS */
+L.push({name:'Upstairs, Downstairs',sub:'Her flat is above his. Things fall through the floor.',top:'FLAT 2',bot:'FLAT 1',
+ init:()=>({st:0,inv:{her:null,him:null},valves:'',water:0,cab:0,rope:0}),
+ hints:[['Her wall has the building’s pipe plan.','His valves are unlabelled colours.','The plan says: turn green, then red, then blue.'],
+  ['Her sink filled up. Something was at the bottom.','She has a ring. There’s a hole in her floor.','Drop it through. He catches it.'],
+  ['The ring fits his cabinet.','Inside is a rope.','He throws it up to her.'],
+  ['Pull the rope together. Both hold.','Count down in chat.','Hold until the chest comes up.']],
+ hot(S){const h=[];if(S.st===0)['green','red','blue'].forEach((c,i)=>h.push({id:'v-'+c,r:'him',x:60+i*90,y:520,w:70,h:70,label:''}));
+  if(S.st===1&&!S.inv.her&&!S.inv.him)h.push({id:'sink',r:'her',x:330,y:280,w:140,h:90,label:'sink'});
+  if(S.st===1&&S.inv.her==='ring')h.push({id:'hole',r:'her',x:220,y:380,w:100,h:60,label:'hole'});
+  if(S.st===2)h.push({id:'cab',r:'him',x:360,y:600,w:120,h:150,label:'cabinet'});
+  if(S.st===3)h.push({id:'throw',r:'him',x:220,y:460,w:100,h:80,label:'throw rope'});
+  if(S.st===4){h.push({id:'hold',r:'her',x:200,y:300,w:140,h:100,hold:1});h.push({id:'hold',r:'him',x:200,y:500,w:140,h:100,hold:1})}return h},
+ act(S,r,id,v){if(id.startsWith('v-')){S.valves+=id[2];if(!'grb'.startsWith(S.valves)){S.valves='';return -1}if(S.valves==='grb'){S.st=1;S.water=1;return 'Pipes rumble. Upstairs, her sink fills… and drains.'}return 'creak.'}
+  if(id==='sink'){S.inv.her='ring';return 'At the bottom of the sink: a ring.'}
+  if(id==='hole'){S.inv.her=null;S.inv.him='ring';S.st=2;return 'Plink… plink… it lands downstairs.'}
+  if(id==='cab'){S.inv.him=null;S.cab=1;S.st=3;return 'The ring is the key. Inside: a rope.'}
+  if(id==='throw'){S.rope=1;S.st=4;return 'He throws the rope up through the hole. Pull together.'}},
+ draw(S,t){room(0,'#33291f','#241c14','#3a2c20','#6a5038');rr(40,60,180,170,4,'#d9cfb8');txt('PIPE PLAN',130,80,11,'#5a4a3a',600);
+  ['green','red','blue'].forEach((c,i)=>{txt(vis('her')?(i+1)+'. '+c:'···',130,115+i*34,15,vis('her')?({green:'#3a8a4a',red:'#b33a3a',blue:'#3a5ab3'})[c]:'#7a6a5a',600)});
+  rr(330,280,140,90,10,'#cfd6da','#8a969c');if(S.water){cx.fillStyle='rgba(90,160,220,.6)';cx.fillRect(345,300,110,50)}if(S.inv.her==='ring')txt('💍 ring',400,265,13,HER);
+  cx.fillStyle='#0a0705';cx.beginPath();cx.ellipse(270,410,40,14,0,0,7);cx.fill();
+  room(HH,'#1f2a2a','#141c1c','#262e2e','#3a4a4a');cx.fillStyle='#0a0705';cx.beginPath();cx.ellipse(270,470,40,12,0,0,7);cx.fill();
+  ['#3a8a4a','#b33a3a','#3a5ab3'].forEach((c,i)=>{cx.fillStyle='#5a6a6a';cx.fillRect(90+i*90,480,10,40);cx.fillStyle=c;cx.beginPath();cx.arc(95+i*90,555,26,0,7);cx.fill();cx.fillStyle='rgba(255,255,255,.3)';cx.fillRect(80+i*90,552,30,6)});
+  txt('valves: '+(S.st>0?'done':S.valves.length+'/3'),180,610,12,'#9ab0b0');
+  rr(360,600,120,150,6,S.cab?'#1a2222':'#3a4a44','#6a8a80');txt(S.cab?'open':'🔒 💍-shaped lock',420,675,12,'#c9dad6');if(S.inv.him==='ring')txt('💍 ring',270,650,13,HIM);
+  if(S.rope){cx.strokeStyle='#c9a46a';cx.lineWidth=5;cx.beginPath();cx.moveTo(270,470);cx.lineTo(270,410);cx.stroke()}
+  if(S.st===3)txt('🪢 throw the rope up',270,500,13,HIM)}});
+/* 4 · DAY / NIGHT MUSEUM */
+L.push({name:'Day & Night',sub:'One museum. She guards it by day, he by night.',top:'DAY',bot:'NIGHT',
+ init:()=>({st:0,inv:{her:null,him:null},pk:'',las:''}),
+ hints:[['At night, three exhibits glow in an order.','By day, each exhibit has a plaque number.','Glow order vase, mask, statue. Plaques 4, 9, 2. Code 492.'],
+  ['He sees glowing footprints at night.','They lead to one painting.','She checks behind the third painting by day.'],
+  ['She installs the fuse in the day panel.','Then the security screen (hers) shows the laser pattern.','Safe path: left, right, left. He taps the lanes.'],
+  ['Catch the thief at dusk: both hold.','Count down together.','Hold.']],
+ hot(S){const h=[];if(S.st===0)h.push({id:'vault',r:'him',x:380,y:700,w:130,h:110,lock:{k:'digits',n:3},label:'vault'});
+  if(S.st===1)[0,1,2,3].forEach(i=>h.push({id:'p'+i,r:'her',x:40+i*120,y:60,w:100,h:90,label:''}));
+  if(S.st===2&&S.inv.her==='fuse')h.push({id:'panel',r:'her',x:420,y:250,w:90,h:110,label:'panel'});
+  if(S.st===3)['L','R'].forEach((s,i)=>h.push({id:'lane'+s,r:'him',x:40+i*230,y:520,w:230,h:150,label:''}));
+  if(S.st===4){h.push({id:'hold',r:'her',x:190,y:300,w:160,h:110,hold:1});h.push({id:'hold',r:'him',x:190,y:500,w:160,h:110,hold:1})}return h},
+ act(S,r,id,v){if(id==='vault'){if(v==='492'){S.st=1;return 'The vault is empty… but glowing footprints lead to a painting.'}return 0}
+  if(/^p\d$/.test(id)){if(id==='p2'){S.inv.her='fuse';S.st=2;return 'Behind the third painting: a fuse.'}return -1}
+  if(id==='panel'){S.inv.her=null;S.st=3;return 'Power’s on. Her screen shows the laser grid at night.'}
+  if(id.startsWith('lane')){S.las+=id[4];if(!'LRL'.startsWith(S.las)){S.las='';return -1}if(S.las==='LRL'){S.st=4;return 'Through the lasers. The thief is cornered. Catch them together!'}return 'step…'}},
+ draw(S,t){cx.fillStyle=grad(0,HH,'#f1e6cf','#d8c8a8');cx.fillRect(0,0,W,HH);cx.fillStyle='#bfa77a';cx.fillRect(0,330,W,120);
+  [0,1,2,3].forEach(i=>{frameP(40+i*120,60,100,90,'#8a6a3a');cx.fillStyle=['#7a8a6a','#8a6a7a','#6a7a9a','#9a8a5a'][i];cx.fillRect(40+i*120,60,100,90)});
+  [['🏺',75,'4'],['🎭',195,'9'],['🗿',315,'2']].forEach(([e,x,n])=>{rr(x-40,250,80,80,6,'#e8dcc0','#a08a60');txt(e,x,280,34);txt(vis('her')?'No. '+n:'No. ·',x,318,13,'#5a4a3a',600)});
+  rr(420,170,90,70,6,'#2a2a2a','#5a5a5a');txt(S.st>=3?(vis('her')?'L · R · L':'···'):'screen off',465,205,13,S.st>=3?'#7aff9a':'#777',600);
+  rr(420,250,90,70,6,S.st>=3?'#3a5a3a':'#5a5a5a');txt(S.st>=3?'⚡ on':'fuse ✕',465,285,12,'#eee');if(S.inv.her==='fuse')txt('fuse in hand',465,340,12,'#7a5a3a');
+  cx.fillStyle=grad(HH,H,'#0c1024','#05060f');cx.fillRect(0,HH,W,HH);glow(470,500,80,'rgba(220,230,255,.9)',.35);txt('🌙',470,500,30);
+  const order=['🏺','🎭','🗿'];const xs={'🏺':75,'🎭':195,'🗿':315};const ph=Math.floor(t/900)%4;
+  order.forEach((e,i)=>{const x=xs[e];const lit=vis('him')&&ph===i;if(lit)glow(x,760,70,'rgba(140,200,255,1)',.8);txt(e,x,760,34,lit?'#fff':'rgba(255,255,255,.25)')});
+  if(S.st>=1&&S.st<3&&vis('him')){for(let i=0;i<6;i++)txt('👣',60+i*55,640-((i%2)*14),18,'rgba(140,255,200,'+(.3+.1*i)+')')}
+  rr(380,700,130,110,8,S.st>=1?'#0a0c18':'#23283a','#4a5a8a');txt(S.st>=1?'open':'🔒 vault',445,755,13,'#c2d4f0');
+  if(S.st===3){cx.strokeStyle='rgba(255,60,60,.8)';cx.lineWidth=2;for(let i=0;i<6;i++){cx.beginPath();cx.moveTo(40,530+i*25);cx.lineTo(500,545+i*22);cx.stroke()}txt('step: '+S.las.split('').join(' · '),270,690,13,'#ff9a9a');txt('LEFT',155,600,14,'#fff',600);txt('RIGHT',385,600,14,'#fff',600)}
+  if(S.st>=4)txt('🦹',270,550,40)}});
+/* 5 · TWO TRAINS */
+L.push({name:'Two Trains',sub:'Parallel tracks. Windows line up for a few seconds at a time.',top:'TRAIN A',bot:'TRAIN B',
+ init:()=>({st:0,inv:{her:'wrench',him:null},clock:0,sw:'',ev:0,lever:''}),
+ hints:[['His carriage has the timetable.','At each landmark, she pulls the lever the right way.','Bridge: left. Tunnel: right. Station: left.'],
+  ['She has a wrench. His door is jammed.','Items only pass when the windows line up.','Wait for “WINDOWS ALIGNED”, then she taps her window.'],
+  ['He opens the door to the coupling.','The tracks split soon. Pull the brakes together.','Both hold.']],
+ hot(S){const h=[],al=aligned(S);if(S.st===0)['L','R'].forEach((s,i)=>h.push({id:'lev'+s,r:'her',x:300+i*110,y:300,w:100,h:110,label:''}));
+  if(S.st===1&&S.inv.her==='wrench')h.push({id:'pass',r:'her',x:60,y:120,w:420,h:140,label:'window'});
+  if(S.st===1&&S.inv.him==='wrench')h.push({id:'door',r:'him',x:390,y:560,w:120,h:200,label:'door'});
+  if(S.st===2){h.push({id:'hold',r:'her',x:60,y:310,w:160,h:110,hold:1});h.push({id:'hold',r:'him',x:60,y:770,w:160,h:110,hold:1})}return h},
+ act(S,r,id,v){const lm=['bridge','tunnel','station'],want='LRL';if(id.startsWith('lev')){const k=S.sw.length,cur=landmark(S);if(cur!==lm[k])return -2;S.sw+=id[3];if(S.sw[k]!==want[k]){S.sw='';return -1}if(S.sw.length===3){S.st=1;return 'Right track every time. Now the jammed door.'}return 'clunk. Next: '+lm[k+1]+'.'}
+  if(id==='pass'){if(!aligned(S))return -3;S.inv.her=null;S.inv.him='wrench';return 'Windows aligned! The wrench passes across.'}
+  if(id==='door'){S.inv.him=null;S.st=2;return 'Door forced. The tracks split ahead: pull the brakes together!'}},
+ draw(S,t){const c=S.clock,sh=(c*80)%540;const sky=(y0)=>{cx.fillStyle=grad(y0,y0+HH,'#2a1a3a','#c86a5a');cx.fillRect(0,y0,W,HH);for(let i=0;i<5;i++){const x=((i*140-sh*(y0?1.6:1))%700+700)%700-80;cx.fillStyle='#1a1020';cx.beginPath();cx.moveTo(x,y0+300);cx.lineTo(x+60,y0+200);cx.lineTo(x+120,y0+300);cx.fill()}};
+  sky(0);sky(HH);const lm=landmark(S);if(lm&&S.st===0){txt(({bridge:'🌉 BRIDGE',tunnel:'🚇 TUNNEL',station:'🚉 STATION'})[lm],270,60,18,'#fff',600)}
+  const car=(y0,col,lbl)=>{rr(20,y0+100,500,330,16,col,'#8a6a4a');[0,1,2].forEach(i=>{rr(60+i*150,y0+130,120,120,10,'rgba(255,230,190,.35)','#c9a46a')});txt(lbl,270,y0+430-16,11,'#e8d8c0',600)};
+  car(0,'#5a2a2a','TRAIN A');car(HH,'#2a3a5a','TRAIN B');
+  const al=aligned(S);if(al){glow(270,HH,300,'rgba(255,240,180,.9)',.35);txt('WINDOWS ALIGNED',270,HH,14,'#fff',600)}else txt('windows apart',270,HH,11,'rgba(255,255,255,.4)');
+  if(S.st===0){[['L','LEFT'],['R','RIGHT']].forEach(([s,n],i)=>{rr(300+i*110,300,100,110,10,'#3a2020','#c9a46a');txt('⇐ ⇒'[i*2],350+i*110,340,28,'#fff');txt(n,350+i*110,385,12,'#e8d8c0',600)});txt('switched: '+S.sw.split('').join(' '),150,360,13,HER)}
+  rr(40,560,180,170,8,'#e8dcc0');txt('TIMETABLE',130,580,11,'#3a2a1a',600);[['bridge','LEFT'],['tunnel','RIGHT'],['station','LEFT']].forEach(([a,b],i)=>txt(vis('him')?a+' → '+b:'···',130,620+i*34,14,'#3a2a1a',500));
+  rr(390,560,120,200,8,S.st>=2?'#101820':'#40506a','#8aa0c0');txt(S.st>=2?'open':'jammed',450,660,13,'#d8e4f0');if(S.inv.her==='wrench')txt('🔧 wrench',140,280,14,HER);if(S.inv.him==='wrench')txt('🔧 wrench',300,770,14,HIM);
+  if(S.st===2){const k=Math.max(0,1-(S.clock-S.ev)/40);rr(240,860,280,12,6,'#333');rr(240,860,280*k,12,6,'#e05a5a');txt('tracks split in '+Math.ceil(40*k)+'s',380,845,12,'#ffb0a8');txt('🛑 brake',140,365,16,'#fff',600);txt('🛑 brake',140,825,16,'#fff',600)}}});
+function aligned(S){return Math.sin(S.clock*2*Math.PI/9)>.55}
+function landmark(S){const p=(S.clock%15)/15;return p<.33?'bridge':p<.66?'tunnel':'station'}
+/* ---------- engine ---------- */
+let holds={her:0,him:0},t0=0;
+function startLevel(i){LVi=i;S=L[i].init();S.t0=Date.now();S.won=0;S.log=[];view='game';$('game').hidden=false;['home','create','join','pick'].forEach(s=>$(s).hidden=true);$('lvName').textContent=(i+1)+' · '+L[i].name;S.hl=0;holds={her:0,him:0};addLog('sys',L[i].sub);resize()}
+function hostAct(r,id,v){if(!S||S.won)return;const lv=L[LVi];if(id==='hold')return;const before=S.st;const res=lv.act(S,r,id,v);
+  if(res===0||res===-1||res===-2||res===-3){S.note={s:res===0?'Not quite. Ask your other half.':res===-2?'Wait for the landmark that’s next.':res===-3?'Wait until the windows line up.':'Wrong order. It reset. Talk it through.',bad:1,t:Date.now()}}else if(res){S.note={s:res,t:Date.now()}}
+  if(S.st!==before)S.hl=0;push()}
+function holdTick(){if(!S||S.won||!isHost)return;const hs=L[LVi].hot(S).filter(h=>h.hold);if(!hs.length)return;const n=Date.now();
+  if(holds.her&&holds.him&&n-Math.max(holds.her,holds.him)>900){S.won=Date.now();S.time=Math.round((S.won-S.t0)/1000);push()}}
+function push(){if(mode==='net'){send({t:'s',S,lv:LVi})}lastSent=Date.now()}
+function send(o){try{if(conn&&conn.open)conn.send(o)}catch(_){}}
+function onMsg(o){if(o.t==='hello'){if(!isHost){me=o.hostRole==='her'?'him':'her';showPick()}}
+  if(o.t==='go'){if(!isHost){startLevel(o.lv);S=o.S}}
+  if(o.t==='s'){if(!isHost){if(LVi!==o.lv)startLevel(o.lv);const prev=S&&S.note&&S.note.t;S=o.S;if(S.note&&S.note.t!==prev)noteFx(S.note)}}
+  if(o.t==='a'){if(isHost)hostAct(o.r,o.id,o.v)}
+  if(o.t==='h'){if(isHost){holds[o.r]=o.d?Date.now():0}}
+  if(o.t==='c')addLog(o.r,o.m);
+  if(o.t==='k'){shakeT=Date.now();sfx.knock();buzz([60,60,60]);$('cv').classList.remove('shake');void $('cv').offsetWidth;$('cv').classList.add('shake')}
+  if(o.t==='menu'){if(!isHost)showPick()}}
+let lastNote=0;function noteFx(n){if(n.t===lastNote)return;lastNote=n.t;if(n.bad){sfx.bad();buzz(80)}else{sfx.ok();buzz(25)}}
+function act(r,id,v){if(mode==='net'&&r!==me)return;if(isHost){hostAct(r,id,v);noteFx(S.note||{})}else send({t:'a',r,id,v})}
+function setHold(r,d){if(mode==='net'&&r!==me)return;if(isHost)holds[r]=d?Date.now():0;else send({t:'h',r,d})}
+/* ---------- input ---------- */
+function cpt(e){const b=cv.getBoundingClientRect();return{x:(e.clientX-b.left)*W/b.width,y:(e.clientY-b.top)*H/b.height}}
+const P={};
+cv.addEventListener('pointerdown',e=>{if(view!=='game'||!S)return;const p=cpt(e);
+  if(S.won){if(p.y>600&&p.y<700){if(isHost){showPick();if(mode==='net')send({t:'menu'})}}return}
+  if(modal){modalTap(p);return}
+  const half=p.y<HH?'her':'him';if(mode==='net'&&half!==me){hint(`That’s ${half==='her'?'her':'his'} half. Tell them what you see.`);sfx.bad();return}
+  const hs=L[LVi].hot(S).filter(h=>h.r===half&&p.x>=h.x&&p.x<=h.x+h.w&&p.y>=h.y&&p.y<=h.y+h.h);
+  if(!hs.length){sfx.click();return}const h=hs[0];sfx.click();buzz(10);
+  if(h.hold){P[e.pointerId]=half;setHold(half,1);return}
+  if(h.lock){modal={id:h.id,r:half,k:h.lock.k,n:h.lock.n,v:Array(h.lock.n).fill(0)};return}
+  act(half,h.id)});
+['pointerup','pointercancel'].forEach(n=>cv.addEventListener(n,e=>{const r=P[e.pointerId];if(r){delete P[e.pointerId];setHold(r,0)}}));
+const SYM={digits:['0','1','2','3','4','5','6','7','8','9'],arrows:['↑','→','↓','←']};
+function modalBox(){const n=modal.n,w=Math.min(420,n*90+40),x=(W-w)/2,y=(modal.r==='her'?HH/2:HH+HH/2)-110;return{x,y,w,h:220,n}}
+function modalTap(p){const b=modalBox(),cw=(b.w-40)/b.n;
+  if(p.y>b.y+150&&p.y<b.y+200){if(p.x<W/2){modal=null;return}const s=modal.v.map(i=>SYM[modal.k][i]).join('');act(modal.r,modal.id,s);modal=null;return}
+  for(let i=0;i<b.n;i++){const x=b.x+20+i*cw;if(p.x>x&&p.x<x+cw&&p.y>b.y+40&&p.y<b.y+140){modal.v[i]=(modal.v[i]+(p.y<b.y+90?1:SYM[modal.k].length-1))%SYM[modal.k].length;sfx.click()}}}
+function drawModal(){if(!modal)return;const b=modalBox(),cw=(b.w-40)/b.n;cx.fillStyle='rgba(0,0,0,.55)';cx.fillRect(0,modal.r==='her'?0:HH,W,HH);rr(b.x,b.y,b.w,b.h,18,'#1a1216','rgba(230,194,122,.6)');
+  txt(modal.k==='arrows'?'ARROW LOCK':'COMBINATION',W/2,b.y+22,11,GOLD,600);
+  for(let i=0;i<b.n;i++){const x=b.x+20+i*cw;rr(x+6,b.y+40,cw-12,100,10,'#0e0a0c','#3a2a30');txt('▲',x+cw/2,b.y+56,12,'#7a6a70');txt(SYM[modal.k][modal.v[i]],x+cw/2,b.y+90,36,PAPER,500);txt('▼',x+cw/2,b.y+126,12,'#7a6a70')}
+  rr(b.x+16,b.y+156,b.w/2-24,40,20,'#2a2024');txt('Cancel',b.x+16+(b.w/2-24)/2,b.y+176,14,PAPER);rr(W/2+8,b.y+156,b.w/2-24,40,20,GOLD);txt('Try it',W/2+8+(b.w/2-24)/2,b.y+176,14,'#1a1014',600)}
+/* ---------- render ---------- */
+function frame(){requestAnimationFrame(frame);if(view!=='game'||!S)return;const t=performance.now(),lv=L[LVi];
+  if(isHost&&LVi===4&&!S.won){S.clock=(Date.now()-S.t0)/1000;if(S.st===2&&!S.ev)S.ev=S.clock;if(S.st===2&&S.clock-S.ev>40){S.st=1;S.inv={her:null,him:'wrench'};S.ev=0;S.note={s:'Too late, the tracks split! Try the brakes again.',bad:1,t:Date.now()}}if(Date.now()-lastSent>120)push()}
+  holdTick();
+  cx.setTransform(1,0,0,1,0,0);cx.clearRect(0,0,W,H);lv.draw(S,t);cx.setTransform(1,0,0,1,0,0);
+  /* partner half dimmed */
+  if(mode==='net'){const y=me==='her'?HH:0;cx.fillStyle='rgba(8,6,9,.42)';cx.fillRect(0,y,W,HH)}
+  /* half labels */
+  rr(10,10,110,24,12,'rgba(0,0,0,.45)');txt((mode==='net'&&me==='her'?'YOU · ':'HER · ')+lv.top,65,22,10,HER,600);rr(10,HH+10,120,24,12,'rgba(0,0,0,.45)');txt((mode==='net'&&me==='him'?'YOU · ':'HIM · ')+lv.bot,70,HH+22,10,HIM,600);
+  cx.fillStyle=GOLD;cx.fillRect(0,HH-1,W,2);
+  /* inventory */
+  ['her','him'].forEach(r=>{const it=S.inv[r];if(it&&vis(r)){rr(W-130,(r==='her'?0:HH)+10,120,24,12,'rgba(0,0,0,.55)',r==='her'?HER:HIM);txt('holding: '+it,W-70,(r==='her'?0:HH)+22,11,PAPER,500)}});
+  /* hold zones */
+  lv.hot(S).filter(h=>h.hold).forEach(h=>{const on=holds[h.r]||(isHost?0:0);rr(h.x,h.y,h.w,h.h,16,'rgba(230,194,122,'+(.12+.08*Math.sin(t/200))+')','rgba(230,194,122,.7)');txt('HOLD',h.x+h.w/2,h.y+h.h/2,14,GOLD,600)});
+  /* note */
+  if(S.note&&Date.now()-S.note.t<4200){const a=Math.min(1,(4200-(Date.now()-S.note.t))/600);cx.save();cx.globalAlpha=a;cx.font='500 15px Jost, sans-serif';const w=Math.min(500,cx.measureText(S.note.s).width+30);rr((W-w)/2,HH-22,w,44,22,S.note.bad?'#5a1e26':'#2a2018',S.note.bad?'#e05a6a':GOLD);txt(S.note.s,W/2,HH,15,PAPER);cx.restore()}
+  drawModal();
+  if(S.won){const k=Math.min(1,(Date.now()-S.won)/700);cx.fillStyle=`rgba(9,7,10,${.85*k})`;cx.fillRect(0,0,W,H);cx.save();cx.globalAlpha=k;glow(W/2,380,260,'rgba(230,194,122,.9)',.4);txt('ESCAPED',W/2,330,13,GOLD,600);txt(lv.name,W/2,385,48,PAPER,500,'center','C');txt('Together in '+Math.floor(S.time/60)+':'+String(S.time%60).padStart(2,'0'),W/2,440,16,'#c9bfb6');
+    if(isHost){rr(W/2-120,620,240,56,28,GOLD);txt('Next room ›',W/2,648,17,'#1a1014',600)}else txt('Waiting for your other half to pick the next room…',W/2,648,14,'#a59c95');cx.restore();
+    if(!done[LVi]||done[LVi]>S.time){done[LVi]=S.time;try{localStorage.setItem('split_done',JSON.stringify(done))}catch(_){}}if(!S.fx){S.fx=1;sfx.open();buzz([80,60,160])}}
+  const el=Math.floor(((S.won||Date.now())-S.t0)/1000);$('clock').textContent=Math.floor(el/60)+':'+String(el%60).padStart(2,'0')}
+requestAnimationFrame(frame);
+function resize(){}
+/* ---------- chat, hint, knock ---------- */
+function addLog(r,m){const d=document.createElement('div');d.className=r;d.textContent=(r==='sys'?'':'')+m;$('log').appendChild(d);$('log').scrollTop=1e9}
+$('chatF').onsubmit=e=>{e.preventDefault();const m=$('chatI').value.trim();if(!m)return;$('chatI').value='';const r=mode==='local'?'her':me;addLog(r,m);send({t:'c',r,m})};
+$('bHint').onclick=()=>{if(!S||S.won)return;const H=L[LVi].hints[Math.min(S.st,L[LVi].hints.length-1)];const i=Math.min(S.hl||0,2);addLog('sys','Hint '+(i+1)+'/3: '+H[i]);S.hl=(S.hl||0)+1};
+$('bKnock').onclick=()=>{send({t:'k'});addLog('sys','You knocked on the wall.');sfx.knock()};
+$('bMenu').onclick=()=>{if(isHost){showPick();send({t:'menu'})}else addLog('sys','Only the host can change rooms.')};
+/* ---------- lobby & net ---------- */
+function showPick(){view='menu';$('game').hidden=true;show('pick');$('pickSub').textContent=mode==='local'?'Test mode: tap either half.':isHost?'You choose. Your other half follows.':'Your other half is choosing…';
+  const el=$('levels');el.innerHTML='';L.forEach((l,i)=>{const b=document.createElement('button');b.className='lv';b.innerHTML=`<i>${i+1}</i><div><b>${l.name}</b><span>${l.sub}</span></div>${done[i]?`<span class="tm">✓ ${Math.floor(done[i]/60)}:${String(done[i]%60).padStart(2,'0')}</span>`:''}`;
+    b.onclick=()=>{if(!isHost)return;startLevel(i);if(mode==='net')send({t:'go',lv:i,S})};el.appendChild(b)})}
+$('bLocal').onclick=()=>{mode='local';isHost=true;showPick()};
+$('bCreate').onclick=()=>show('create');$('bJoin').onclick=()=>{show('join');$('jCode').focus()};
+const PREFIX='split-esc-';let code='';
+function wire(c){conn=c;c.on('data',onMsg);c.on('close',()=>addLog('sys','Your other half disconnected.'))}
+function bcConn(code){const ch=new BroadcastChannel('split-'+code),h={};const c={open:true,send:o=>ch.postMessage(o),on:(n,f)=>{h[n]=f;if(n==='open')setTimeout(f,30)}};ch.onmessage=e=>h.data&&h.data(e.data);return c}
+function host(r){me=r;mode='net';isHost=true;code=Array.from({length:4},()=>'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*31)]).join('');if(location.search.includes('bc'))code='TEST';$('code').textContent=code;$('cStatus').textContent='Share this code. Waiting…';
+  if(location.search.includes('bc')){const c=bcConn(code);wire(c);c.on('data',o=>{onMsg(o);if(o.t==='join'){c.send({t:'hello',hostRole:me});showPick()}});return}
+  try{peer&&peer.destroy()}catch(_){}peer=new Peer(PREFIX+code);peer.on('error',e=>$('cStatus').textContent='Network problem ('+e.type+'). Try again.');
+  peer.on('connection',c=>{wire(c);c.on('open',()=>{c.send({t:'hello',hostRole:me});showPick()})})}
+$('asHer').onclick=()=>host('her');$('asHim').onclick=()=>host('him');
+$('bGo').onclick=()=>{const c0=$('jCode').value.trim().toUpperCase();if(c0.length!==4){$('jStatus').textContent='Codes are 4 characters.';return}mode='net';isHost=false;
+  if(location.search.includes('bc')){const c=bcConn(c0);wire(c);setTimeout(()=>c.send({t:'join'}),60);return}
+  $('jStatus').textContent='Connecting…';try{peer&&peer.destroy()}catch(_){}peer=new Peer();peer.on('open',()=>{const c=peer.connect(PREFIX+c0,{reliable:true});wire(c)});peer.on('error',e=>$('jStatus').textContent=e.type==='peer-unavailable'?'No room with that code.':'Network problem ('+e.type+').')};
+</script></body></html>
