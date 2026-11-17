@@ -318,7 +318,7 @@ async function runStep(i){if(i===0){STATS.t0=performance.now();STATS.falls=0;STA
   if(s.k==='boss'){startBoss(tok);return}
   if(s.k==='fix'){startFix(s.id,tok);return}
   if(s.k==='final'){view='final';finT0=performance.now();sfx.win();
-    overlay('Chapter 1 complete','Kia laraiyan thi 😛',`Every fight, a way back. Every crack, gold.\n${Math.max(1,Math.round((performance.now()-STATS.t0)/60000))} min together · ${STATS.falls} oops · ${STATS.msgs} messages\nMini-games: Her ${score.her} · Him ${score.him}\nChapter 2 · Shaadi, 2nd & 4th April.`,0,'Play again',()=>{if(isHost)goStep(0);else send({t:'again'})})}
+    overlay('Chapter 1 complete','Always us 🤍',`Every time, a way back. Every crack, gold.\n${Math.max(1,Math.round((performance.now()-STATS.t0)/60000))} min together · ${STATS.falls} oops · ${STATS.msgs} messages\nMini-games: Her ${score.her} · Him ${score.him}\nChapter 2 · Shaadi, 2nd & 4th April.`,0,'Play again',()=>{if(isHost)goStep(0);else send({t:'again'})})}
 }
 function goStep(n){if(!isHost)return;send({t:'step',i:n});runStep(n)}
 let finT0=0;
@@ -466,7 +466,7 @@ let M=null;
 function startMini(id,tok){view='mini';M={id,tok,phase:'count',t0:performance.now(),v:0,round:1,wins:{her:0,him:0},res:null,
   pk:{x:270,y:390,vx:0,vy:0},pads:{her:{x:270,y:640,px:270,py:640},him:{x:270,y:140,px:270,py:140}},sc:{her:0,him:0},ptr:{}};
   const name={tug:'The Last Croissant',hockey:'Emoji Hockey',mehndi:'Mehndi Race'}[id];
-  const sub={tug:'“2 min pehle cats and dogs, ab kitna pyaar” 😛 One croissant. Two hungry people. Tap like crazy to drag it home, and grab the chocolate 🍫 the moment it appears: triple pull!',hockey:'Kam rage bait kia krien 😤 Settle it on the rink. Drag your paddle and smash the heart into their goal. First to 2 wins.',mehndi:'Wedding prep! Trace the mehndi design with your finger, dot by dot. Slip off the line and it smudges, costing you dots. First to finish wins.'}[id];
+  const sub={tug:'“Ab kitna pyaar” 😛 One croissant. Two hungry people. Tap like crazy to drag it home, and grab the chocolate 🍫 the moment it appears: triple pull!',hockey:'A friendly match on the rink. Drag your paddle and smash the heart into their goal. First to 2 wins.',mehndi:'Wedding prep! Trace the mehndi design with your finger, dot by dot. Slip off the line and it smudges, costing you dots. First to finish wins.'}[id];
   overlay('Mini-game',name,sub,3200);
   const c=$('controls');
   if(id==='tug'){c.innerHTML='<p class="gest">'+(mode==='local'?'Her: tap the left half · Him: tap the right half':'Tap the board as fast as you can')+'</p>';
@@ -551,7 +551,7 @@ function drawMini(t,dt){if(!M)return;cx.fillStyle='#120f0f';cx.fillRect(0,0,540,
 let B=null;const GY=690,KX=270,KY=210;
 function startBoss(tok){view='boss';B={tok,on:false,phase:1,unties:0,ends:{her:{x:140},him:{x:400}},coils:[],wave:null,hearts:5,cd:2.6,t:0,swapped:false,
   p:{her:{x:200,frz:0},him:{x:340,frz:0}},inp:{her:{l:0,r:0},him:{l:0,r:0}},press:{her:-9e9,him:-9e9},win:false,hitT:0,fx:[]};
-  overlay('Final fight','The Knot','“I need space.” Everything unsaid, tied in one knot. Each of you grabs your own strand: her pink, his cream. Tap the board at the same moment to pull a loop loose. Its coils tangle you, so free each other.',7000);
+  overlay('The last knot','Untie it together','Some knots only two hands can undo. Each of you grabs your own strand: her pink, his cream. Tap the board at the same moment to pull a loop loose. Its coils tangle you, so free each other.',7000);
   buildBossControls();setTimeout(()=>{if(B&&B.tok===tok){B.on=true;sfx.roar();shake=12;tip('<b>Stand under your own strand</b> and count “1, 2, 3” in the chat. tap together.')}},7000)}
 function buildBossControls(){$('controls').innerHTML='<p class="gest">'+(mode==='local'?'Touch near your character · drag to walk · tap to untie':'Drag to walk · tap to untie')+'</p>'}
 function setIn(r,k,v){if(!B)return;if(mode==='net'&&r!==me)return;B.inp[r][k]=v;if(!isHost)send({t:'bin',r,inp:B.inp[r]})}
@@ -667,7 +667,7 @@ function storm(t,k){for(let i=0;i<5;i++){const x=150+i*60+Math.sin(t/1400+i)*14,
 const STORY={
  prologue:[
   {d:4400,title:1,txt:'Chapter 1 · Kia Laraiyan Thi',f:(t,k)=>{velvet(t);starsF(t,40,620);frame(Math.min(1,k*2));const s=150*(1+.025*Math.sin(t/280));heartG(270,250,s,1,t);
-    cx.save();cx.globalAlpha=Math.min(1,k*2.5);caps('TWO HALVES',270,400);cx.textAlign='center';cx.fillStyle=PAPER2;cx.font='italic 500 50px "Cormorant Garamond", serif';cx.fillText('Kia Laraiyan Thi',270,468);orn(270,496,70);caps('CHAPTER ONE',270,528,'#efb8b1',11);cx.restore()}},
+    cx.save();cx.globalAlpha=Math.min(1,k*2.5);caps('TWO HALVES',270,400);cx.textAlign='center';cx.fillStyle=PAPER2;cx.font='italic 500 50px "Cormorant Garamond", serif';cx.fillText('Always Us',270,468);orn(270,496,70);caps('CHAPTER ONE',270,528,'#efb8b1',11);cx.restore()}},
   {d:5400,txt:'3,000 km. One screen. Four fights.',f:(t,k)=>{
     cx.save();cx.beginPath();cx.rect(0,0,270,780);cx.clip();bg(['#170d28','#4d2550','#c8746c','#f0c48d']);starsF(t,20,220);crescent(80,170,17);city(-10,280,470,'#2c1730',t,3);
     cx.fillStyle=vgrad(['#3c2452','#1a1028'],470,660);cx.fillRect(0,470,270,310);cx.strokeStyle='rgba(240,196,141,.5)';cx.lineWidth=1.5;for(let i=0;i<9;i++){const yy=482+i*15,o=(t/40+i*37)%80;cx.beginPath();cx.moveTo(30+o+i*5,yy);cx.lineTo(70+o+i*5,yy);cx.stroke()}
@@ -675,7 +675,7 @@ const STORY={
     cx.save();cx.beginPath();cx.rect(270,0,270,780);cx.clip();bg(['#120a22','#3e1d42','#bf6c5c','#ecbd86']);starsF(t,22,240);ridge(560,40,.012,1,'#8a4a3e',270,540);city(280,540,560,'#3a1e30',t,11);kingdom(440,560,250,'#1e1022');
     ridge(610,30,.018,2,'#5a2a32',270,540);ridge(650,18,.022,3,'#2a1420',270,540);who('him',400,600,t,-1,0);caps('RIYADH',405,120);cx.restore();
     cx.strokeStyle=GOLD;cx.globalAlpha=.7;cx.lineWidth=1;cx.beginPath();cx.moveTo(270,70);cx.lineTo(270,640);cx.stroke();cx.globalAlpha=1;
-    const qa=Math.min(1,Math.max(0,k*2.2-.3));cx.save();cx.globalAlpha=qa;cx.fillStyle='rgba(7,5,10,.6)';cx.fillRect(0,250,540,96);cx.textAlign='center';cx.fillStyle=PAPER2;cx.font='italic 500 30px "Cormorant Garamond", serif';cx.fillText('“If there is love,',270,290);cx.fillText('only then you fight.”',270,326);cx.restore();glow(150,575,30,'rgba(200,220,255,.6)',.5+.3*Math.sin(t/300));glow(390,575,30,'rgba(200,220,255,.6)',.5+.3*Math.sin(t/300+1))}}],
+    const qa=Math.min(1,Math.max(0,k*2.2-.3));cx.save();cx.globalAlpha=qa;cx.fillStyle='rgba(7,5,10,.6)';cx.fillRect(0,250,540,96);cx.textAlign='center';cx.fillStyle=PAPER2;cx.font='italic 500 30px "Cormorant Garamond", serif';cx.fillText('“No matter what,',270,290);cx.fillText('we always find our way back.”',270,326);cx.restore();glow(150,575,30,'rgba(200,220,255,.6)',.5+.3*Math.sin(t/300));glow(390,575,30,'rgba(200,220,255,.6)',.5+.3*Math.sin(t/300+1))}}],
  magnet:[
   {d:5000,txt:'7 July. “Take a stand.” And then… Seen.',f:(t,k)=>{rooms(t,'#d98f88','#6a6250');bubbleArt(160,250,'her',Math.max(0,Math.min(1,k*3-.3)),'take a stand 🙂');if(k>.42){cx.save();cx.globalAlpha=Math.min(1,(k-.42)*5);cx.fillStyle='#9fb6d9';cx.font='500 13px Jost, sans-serif';cx.textAlign='center';cx.fillText('Seen ✓✓',190,292);cx.restore()}if(k>.7)bubbleArt(170,330,'her',Math.min(1,(k-.7)*5),'hello??');rift(270,Math.max(0,k-.45),t)}}],
  seed:[
@@ -701,7 +701,7 @@ const STORY={
     const e=ease(Math.min(1,k*1.4));who('her',130+100*e,590,t,1,0);who('him',410-100*e,590,t,-1,0);
     for(let i=0;i<3;i++){const a=Math.min(1,Math.max(0,(k-.35-i*.17)*6));if(a>0){cx.save();cx.globalAlpha=a;cx.textAlign='center';cx.fillStyle=PAPER2;cx.font='italic 500 30px "Cormorant Garamond", serif';cx.fillText('qubool hai',270,345+i*40);cx.restore()}}}},
   {d:4200,txt:'2 & 4 April.',f:(t,k)=>{night(t,['#07050a','#160b1e','#331530']);fireworks(t);marigold(0,540,84,30,30);fairy(0,540,100,40,t,18);ringsArt(270,330,t,k);who('her',225,600,t,1,-1);who('him',315,600,t,-1,-1)}},
-  {d:4600,title:1,txt:'Chapter 2 · Shaadi. Coming soon.',f:(t,k)=>{velvet(t);frame(Math.min(1,k*2));fireworks(t,2);cx.save();cx.globalAlpha=Math.min(1,k*2.5);caps('CHAPTER ONE COMPLETE',270,330);cx.textAlign='center';cx.fillStyle=PAPER2;cx.font='italic 500 62px "Cormorant Garamond", serif';cx.fillText('Shaadi',270,405);orn(270,432,70);cx.fillStyle='#d9c7b8';cx.font='italic 400 21px "Cormorant Garamond", serif';cx.fillText('“lots of patience and fights… worth the wait”',270,520);caps('CHAPTER TWO · 2 & 4 APRIL',270,466,'#efb8b1',11);cx.restore()}}]
+  {d:4600,title:1,txt:'Chapter 2 · Shaadi. Coming soon.',f:(t,k)=>{velvet(t);frame(Math.min(1,k*2));fireworks(t,2);cx.save();cx.globalAlpha=Math.min(1,k*2.5);caps('CHAPTER ONE COMPLETE',270,330);cx.textAlign='center';cx.fillStyle=PAPER2;cx.font='italic 500 62px "Cormorant Garamond", serif';cx.fillText('Shaadi',270,405);orn(270,432,70);cx.fillStyle='#d9c7b8';cx.font='italic 400 21px "Cormorant Garamond", serif';cx.fillText('“lots of patience… worth the wait”',270,520);caps('CHAPTER TWO · 2 & 4 APRIL',270,466,'#efb8b1',11);cx.restore()}}]
 };
 const OUTRO=['Fight one, fixed','Fight two, fixed','Fight three, fixed','The last fight, fixed'];
 for(let n=0;n<PIECES;n++)STORY['out'+n]=[{d:4600,txt:OUTRO[n]+' · '+MEM[n],f:(t,k)=>{velvet(t);frame(1);const lv=(n+(k<.5?0:ease(Math.min(1,(k-.5)*2.5))))/PIECES;heartG(270,290,230,lv,t);
@@ -1261,6 +1261,25 @@ THEME.pp1=THEME.magnet;THEME.cy1=THEME.storm;THEME.vine=THEME.seed;
 const NOTE=['Sushi,','I made this game out of our fights.','Not to remember them. To remember','what we did after every single one.','','You said it. I listened.','I went quiet. You lit the way.','One of us pulled, the other came.','','Nothing here works unless we both','do our part. That’s us.','','Kia laraiyan thi… aur har larai ke baad','hum pehle se zyada “hum” ban gaye.','','So fight with me as much as you want.','I’ll always find my way back to you ♥️'];
 STORY.note=[{d:30000,title:1,txt:'',f:(t,k)=>{velvet(t);starsF(t,30,620);frame(1);const n=NOTE.length,p=Math.min(1,k*1.9)*n;cx.save();cx.textAlign='center';
   NOTE.forEach((l,i)=>{const a=Math.max(0,Math.min(1,p-i));if(!a||!l)return;cx.globalAlpha=a;const y=140+i*29+(1-a)*8;if(i===0){cx.fillStyle=GOLD;cx.font='italic 600 30px "Cormorant Garamond", serif'}else{cx.fillStyle=PAPER2;cx.font=(i>=n-2?'italic 600 ':'italic 500 ')+'22px "Cormorant Garamond", serif'}cx.fillText(l,270,y)});cx.restore()}}];
+
+/* ================= v8: no fights, only the way back ================= */
+const CARD=(cap,title,line,quote)=>[{d:5600,title:1,txt:'',f:(t,k)=>{velvet(t);starsF(t,36,620);frame(Math.min(1,k*2));const s=130*(1+.025*Math.sin(t/280));heartG(270,235,s,1,t);
+  cx.save();cx.globalAlpha=Math.min(1,k*2.5);caps(cap,270,385);cx.textAlign='center';cx.fillStyle=PAPER2;cx.font='italic 500 44px "Cormorant Garamond", serif';cx.fillText(title,270,442);orn(270,468,70);
+  cx.fillStyle='#d9c7b8';cx.font='300 16px Jost, sans-serif';cx.fillText(line,270,504);cx.restore();
+  const q=Math.max(0,Math.min(1,k*2.5-1));if(q){cx.save();cx.globalAlpha=q;cx.textAlign='center';cx.fillStyle=GOLD;cx.font='italic 600 24px "Cormorant Garamond", serif';cx.fillText(quote,270,552);cx.restore()}
+  const e=ease(Math.min(1,k*1.6));who('her',150+60*e,600,t,1,-1);who('him',390-60*e,600,t,-1,-1)}}];
+STORY.f1=CARD('CHAPTER ONE','Reach for each other','One of us speaks. The other listens.','“No matter what, we find our way back.”');
+STORY.f3=CARD('CHAPTER TWO','Carry me through','When it gets heavy, I carry you.','“I can’t imagine my life without you.”');
+STORY.f5=CARD('CHAPTER THREE','Let it rain','A little rain, and something always grows.','“Usay zyada pyaar ata hai.”');
+STORY.f6=CARD('THE LAST KNOT','Untie it together','Some knots only two hands can undo.','“I will never leave.”');
+(()=>{const F=(id,title,steps,reveal)=>{FIX[id].title=title;FIX[id].steps=steps;FIX[id].reveal=reveal};
+ F('f1','Reach for each other.',[{w:'her',a:'tap',s:'She said: “Talk to me.”'},{w:'him',a:'hold',s:'He listened. Really listened.'},{w:'both',a:'hold',s:'“Sorry.” “Sorry.” No ego, same time.'}],'“No matter what, we always find our way back.”');
+ F('f3','Carry me through.',[{w:'him',a:'hold',s:'“Hold on. I’ve got you.”'},{w:'her',a:'tap',s:'“Promise?” “Promise.”'},{w:'both',a:'hold',s:'“I can’t imagine my life without you.”'}],'Then: leave approved ✈️');
+ F('f5','Let it rain.',[{w:'her',a:'tap',s:'“Tell me what you feel.”'},{w:'him',a:'hold',s:'“You’re my wife. I’m always on your side.”'},{w:'both',a:'hold',s:'And everything softened.'}],'“Jitna ghussa ata hai, usay zyada pyaar ata hai.”');
+ F('f6','Untie it together.',[{w:'him',a:'hold',s:'“Take your time. I’m right here.”'},{w:'her',a:'tap',s:'“Let’s forget it. I will never leave.”'},{w:'both',a:'hold',s:'“Misunderstanding ke baad hi understanding achi banti hai.”'}],'“Chahay jitna bhi naraz ho, apkay begair nahi raha jata.”');
+ STORY.prologue[0].txt='Chapter 1 · Always Us';STORY.prologue[1].txt='3,000 km. One screen. Always a way back.';
+ STORY.end[0].txt='Every time, a way back. Every crack, gold.';if(STORY.end[1])STORY.end[1].txt='“Mera to software update hi hogaya 😛”';})();
+NOTE.splice(0,NOTE.length,'Sushi,','I didn’t make this game to remember','the hard days. I made it for','what we always do after them.','','You speak. I listen.','You reach out. I come closer.','One of us pulls, the other comes.','','Nothing here works unless we both','do our part. That’s us.','','Har baar, hum pehle se zyada','“hum” ban jaate hain.','','Whatever comes, we fix it together.','I’ll always find my way back to you ♥️');
 
 </script>
 </body>
